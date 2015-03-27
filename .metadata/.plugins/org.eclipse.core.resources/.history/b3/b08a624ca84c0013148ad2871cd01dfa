@@ -1,0 +1,2204 @@
+package com.forbes.test.selenium.seleniumDaily;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverBackedSelenium;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxProfile;
+import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+import com.thoughtworks.selenium.Selenium;
+import com.thoughtworks.selenium.Wait;
+
+
+//hi, a lot of this is pretty simple code. simple to understand and write up, but it's probably messy and not the cleanest.
+//have fun and welcome to Forbes!
+public class PerformTest {
+	private static final Logger logger = LoggerFactory.getLogger(PerformTest.class);
+
+	WebDriver driver = null;
+
+	Selenium selenium = null;
+
+//	Functions function = null;
+
+//	PrintWriter writer = new PrintWriter("C:\Users\bpoon\workspace\SeleniumDaily\test-output-file.txt", "UTF-8");
+
+	@Test
+	public void initDriver() {
+		try {
+
+			driver = new FirefoxDriver();
+
+			driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+
+			selenium = new WebDriverBackedSelenium(driver, "http://www.forbes.com");
+
+//			function = new Functions();
+
+		} catch (Exception ex) {
+			logger.error(ex.getMessage(), ex);
+		}
+	}
+
+	public void initDriverChrome() {
+		try {
+			System.setProperty("webdriver.chrome.driver", System.getProperty("user.home")+"\\AppData\\Local\\Google\\Chrome\\Application\\chromedriver.exe");
+
+			driver = new ChromeDriver();
+
+			driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+
+			selenium = new WebDriverBackedSelenium(driver, "http://www.forbes.com");
+		} catch (Exception ex) {
+			logger.error(ex.getMessage(), ex);
+		}
+	}
+
+	public void initDriverChromeLog() {
+		try {
+			System.setProperty("webdriver.chrome.driver", System.getProperty("user.home")+"\\AppData\\Local\\Google\\Chrome\\Application\\chromedriver.exe");
+
+			 ChromeOptions options = new ChromeOptions();
+			 options.addArguments("--enable-logging","--INFO=1");
+			 // For use with ChromeDriver:
+			 driver = new ChromeDriver(options);
+
+			driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+
+			selenium = new WebDriverBackedSelenium(driver, "http://www.forbes.com");
+		} catch (Exception ex) {
+			logger.error(ex.getMessage(), ex);
+		}
+	}
+
+	public void initDriverIE() {
+		try {
+//			System.setProperty("webdriver.ie.driver", "C:\\Users\\jjean\\AppData\\Local\\Google\\Chrome\\Application\\chromedriver.exe");
+
+	//		File file = new File("C:\\Users\\work\\AppData\\Local\\Microsoft\\Internet Explorer\\IEDriverServer.exe");
+
+			System.setProperty("webdriver.ie.driver", "C:\\Program Files\\Internet Explorer\\IEDriverServer (2).exe");
+
+			driver = new InternetExplorerDriver();
+
+			driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+
+			selenium = new WebDriverBackedSelenium(driver, "http://www.forbes.com");
+		} catch (Exception ex) {
+			logger.error(ex.getMessage(), ex);
+		}
+	}
+
+	public void outputLog() {
+		try {
+			DateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd...HH.mm.ss");
+			Date date = new Date();
+			Calendar cal = Calendar.getInstance();
+			cal.setTime(date);
+			String sdf = dateFormat.format(date);
+			System.out.println(sdf);
+			String year = "" +cal.get(Calendar.YEAR);
+			String month = "" +(cal.get(Calendar.MONTH)+1);
+			System.out.println(year);
+			System.out.println(month);
+			if(month.length()<2) {
+				month = "0"+month;
+			}
+			String day = "" +cal.get(Calendar.DAY_OF_MONTH);
+			if(day.length()<2){
+				day = "0"+day;
+			}
+			System.out.println(year+month+day);
+
+			boolean success = (new File(path+"/Test_Results/"+year+"/"+month+"/"+day)).mkdirs();
+
+			System.out.println(path+"/Test_Results/"+year+"/"+month+"/"+day);
+			if (!success) {
+			    System.out.println("Folder already There");
+			} else {
+				System.out.println("Success");
+			}
+
+			PrintStream out = new PrintStream(new FileOutputStream(path+"/Test_Results/"+year+"/"+month+"/"+day+"/output_log_"+sdf+".txt"));
+			System.setOut(out);
+			System.setErr(out);
+		} catch (Exception ex) {
+			logger.error(ex.getMessage(), ex);
+		}
+
+	}
+//Initiate Variables
+	//int Error = 0;
+	//int i = 0;
+	//long timeElapsed = 0;
+	String testName;
+//	int numberTests = 0;
+//	String[] errorArray;
+	int error;
+	List<String> errorList = new ArrayList<String>();
+	List<String> errorListCompiled = new ArrayList<String>();
+	List<String> resultList = new ArrayList<String>();
+	Set<String> sitesVisited = new HashSet<String>();
+	String path = System.getProperty("user.home")+"/Selenium";
+	String resultString = "[ERROR COMPILATION]: ";
+
+	//JQueryCounter Resets every pageload; when it reaches 7:imports JQuery again
+	int JQueryCounter= 0;
+
+	@Test
+	public void test(boolean condition, String messageSuccess, String messageFailure) {
+		if (condition) {
+			logger.debug("SUCCESS: " +messageSuccess);
+		} else {
+			String msg = driver.getCurrentUrl()+": FAILURE: " +messageFailure;
+			if (testName !=null && msg!= null) {
+				logger.debug(msg);
+	//			errorArray[Error] = messageFailure;
+				errorList.add("	"+testName + ":"+ msg);
+				errorListCompiled.add(testName+ ":"+ msg);
+				resultString = resultString + testName+ ":"+ msg+" , ";
+				error++;
+			}
+			else {
+				System.out.println("NAME THE TEST");
+			}
+		}
+
+		System.out.println(resultString);
+//		if (error>0) {
+//			testSummaries();
+//		testSummary();
+		//} else {
+			//return;
+//		}
+	}
+
+	@Test
+	public void testSummary() {
+//		errorList = new ArrayList<String>();
+		if (error == 0) {
+			String msg = "SUCCESS: There were no Errors in " +testName;
+			logger.debug(msg);
+//			errorListCompiled.add();
+			resultList.add(msg+",");
+		} else {
+			logger.debug("FAILURE: There were " +error+" Errors in " + testName + ". The Errors are: ");
+			resultList.add("FAILURE: There were " +error+" Errors in " + testName + ". The Errors are: ,");
+			for (String errorStatement : errorList) {
+				logger.debug(errorStatement);
+//				resultList.add(errorStatement+",");
+				resultList.add(errorStatement+" , ");
+				errorListCompiled.add(testName+ " : " +errorStatement);
+			}
+		}
+
+//		return;
+		errorList = new ArrayList<String>();
+		error=0;
+	}
+
+	@Test
+	public String testSummaries() {
+		for (String errorInList:errorListCompiled) {
+			logger.debug(errorInList);
+//			resultString = resultString + errorInList;
+		}
+		System.out.println(errorListCompiled);
+//		String finalResult= errorListCompiled.toString();
+//		StringBuilder sb = new StringBuilder();
+//		for (String s:errorListCompiled){
+//			sb.append(s);
+//			sb.append("\t");
+//		}
+//		resultString = resultString.replaceAll(",","%n");
+//		String finalResult = sb.toString();
+//		System.out.println(finalResult);
+		return errorListCompiled.toString();
+	}
+
+	@Test
+	public boolean testFreemarker() {
+		String url = driver.getCurrentUrl();
+		String source = driver.getPageSource();
+		test(!source.contains("freemarker"),"No Freemarker Errors on " +url +".","There is a FreeMarker Error on " +url+ ".");
+		if (!source.contains("freemarker")) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	@Test
+	public void get(String url) {
+		sitesVisited.add(url+System.lineSeparator());
+		openPage(url); //gets the page with Alex's Method which kills loading after 5sec
+		selenium.getEval("backtriggered=true");
+		String im =
+					"var head= document.getElementsByTagName('head')[0];"+
+					"var script= document.createElement('script');"+
+					"script.type= 'text/javascript';"+
+				    "script.src= 'http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js';"+
+				    "head.appendChild(script);";
+		System.out.println("Importing JQuery");
+		selenium.getEval(im); //imports JQuery onto the page
+		System.out.println("Imported JQuery");
+		JQueryCounter = 0;
+		logger.debug("Visiting "+url);
+//		FirefoxProfile ff = new FirefoxProfile();
+//		ff.setPreference("browser.cache.disk.enable", false);
+		testPage(); //Run some generic tests on the page
+	}
+
+	public Set<String> getSitesVisited() {
+		return sitesVisited;
+	}
+
+	@Test
+		public void testPageLinks(String page) {
+
+			//Name of the test
+			testName = page+" Links Test";
+			//This test collects all Forbes links on a page then goes to each of them and tests that they are not a forbes.com 404 page
+
+			logger.debug("Executing Test: " +testName);
+
+			get(page);
+
+			Set<String> links = getLinks();
+
+			int i = 0;
+			for(String url : links) {
+				logger.debug("Getting " +url + " . " + ++i + " out of " + getLinks().size());
+				get(url);
+			}
+
+			logger.debug("Done with the Test");
+			testSummary();
+	}
+
+	public void testPageArticles(String page) {
+		//Name of the test
+		testName = page+" Articles Test";
+		//This test collects all Forbes links on a page then goes to each of them and tests that they are not a forbes.com 404 page
+
+		logger.debug("Executing Test: " +testName);
+		get(page);
+		Set<String> realtime = getArticles();
+
+		int i = 0;
+		for(String url : realtime) {
+			logger.debug("Getting " +url + " . " + ++i + " out of " + realtime.size());
+			get(url);
+		}
+
+		logger.debug("Done with the Test");
+		testSummary();
+	}
+
+	public Set<String> getLinks() {
+		String js = "";
+		js += "return (function () {";
+		js += 	"var arr = [];";
+
+		js += 	"$('a').each(";
+		js += 		"function () {";
+		js += 		"var link = $(this).attr('href');";
+		js += 		"var a = document.createElement('a');";
+		js += 		"a.href = link;";
+		js += 		"arr.push(a.href);";
+		js += 	"});";
+
+		js += 	"return arr;";
+		js += "})();";
+		//logger.debug(js);
+		JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
+		@SuppressWarnings("unchecked")
+//		String urlListString = selenium.getEval(js);
+
+//		String[] urlArray = new String[] {urlListString};
+
+		//logger.debug(urlList);
+		List<String> hrefList = (List<String>)jsExecutor.executeScript(js);
+		Set<String> hrefSet = new HashSet<String>();
+		//logger.debug("Size: " +hrefList);
+		for(String href : hrefList) {
+			if (href.startsWith("h") && !hrefSet.contains(href) && !href.contains("http://googleads.g.doubleclick.net") && !href.contains("video.forbes.com") && !href.equals("http://www.forbes.com/") && href.contains("forbes.com") && !href.contains("linkedin.com/today/") && !href.contains("/#") && !href.contains("undefined") && !href.equals(driver.getCurrentUrl())){
+				logger.debug("URL is " + href);
+				hrefSet.add(href);
+			} else {
+				logger.debug("Skipped: "+href);
+			}
+		}
+		return hrefSet;
+	}
+
+	public Set<String> getArticles() {
+		System.out.println("Getting Links");
+		Set<String> linksA = getLinks();
+		System.out.println("Finished getting links");
+		Set<String> articles = new HashSet<String>();
+//		System.out.println(".*+/sites/[^\\x2F]+/\\d\\d\\d\\d/\\d\\d/\\d\\d/[^\\x2F]+/\\d+.*");
+		System.out.println("Filtering links for articles");
+		for(String href : linksA) {
+			if (href.contains("forbes.com/sites") && href.matches(".*/sites/[^\\x2F]+/\\d\\d\\d\\d/\\d\\d/\\d\\d/[^\\x2F].*") && !href.contains("commentId")){
+//			if (href.contains("forbes.com/sites") && href.matches(".*/sites/[^\\x2F]+/\\d\\d\\d\\d/\\d\\d/\\d\\d/[^\\x2F]+[^\\x2F]")){
+				articles.add(href);
+				System.out.println(href);
+			}
+		}
+		System.out.println("Done filtering links for articles");
+		System.out.println(articles);
+		return articles;
+	}
+
+	@SuppressWarnings("null")
+	public Set<String> getContent() {
+		Set<String> set1 = getArticles();
+		Set<String> set2 = getGalleries();
+		Set<String> content = null;
+		content.addAll(set1);
+		content.addAll(set2);
+		return content;
+	}
+
+	public Set<String> getGalleries() {
+		Set<String> linksG = getLinks();
+		Set<String> galleries = new HashSet<String>();
+		for (String href : linksG) {
+			if (href.contains("forbes.com/pictures")) {
+				galleries.add(href);
+				System.out.println(href);
+			}
+		}
+		return galleries;
+	}
+
+	public boolean outputErrored() {
+		boolean success = false;
+		try {
+			outputResults();
+			success = true;
+		}  catch(MessagingException ex) {
+			logger.error(ex.getMessage(), ex);
+		}
+		return success;
+	}
+
+	public void runOutputUntilSuccess() {
+		int numberOfTries = 5;
+		while(!outputErrored() && numberOfTries > 0) {
+			numberOfTries--;
+		}
+	}
+
+	public void sendEmail(String from,String to, String to1,String subject, String body, String bcc) {
+
+	      // Assuming you are sending email from localhost
+	      String host = "smtp.forbes.com";
+
+	      // Get system properties
+	      Properties properties = System.getProperties();
+
+	      // Setup mail server
+	      properties.setProperty("mail.smtp.host", host);
+
+	      // Get the default Session object.
+	      Session session = Session.getDefaultInstance(properties);
+
+	      try{
+	         // Create a default MimeMessage object.
+	         MimeMessage message = new MimeMessage(session);
+
+	         // Set From: header field of the header.
+	         message.setFrom(new InternetAddress(from));
+
+	         // Set To: header field of the header.
+	         message.addRecipient(Message.RecipientType.TO,
+	                                  new InternetAddress(to1));
+
+	         message.addRecipient(Message.RecipientType.BCC, new InternetAddress(
+	                 bcc));
+
+	         // Set Subject: header field
+	         message.setSubject(subject);
+
+	         // Now set the actual message
+	         message.setText(body);
+
+	         // Send message
+	         Transport.send(message);
+	         System.out.println("Sent message successfully....");
+	      }catch (MessagingException mex) {
+	         mex.printStackTrace();
+	      }
+	}
+
+	public void outputResults() throws MessagingException {
+			DateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd...HH.mm.ss");
+			Date date = new Date();
+			Calendar cal = Calendar.getInstance();
+			cal.setTime(date);
+			String sdf = dateFormat.format(date);
+			System.out.println(sdf);
+			String year = "" +cal.get(Calendar.YEAR);
+			String month = "" +(cal.get(Calendar.MONTH)+1);
+			System.out.println(year);
+			System.out.println(month);
+			if(month.length()<2) {
+				month = "0"+month;
+			}
+			String day = "" +cal.get(Calendar.DAY_OF_MONTH);
+			if(day.length()<2){
+				day = "0"+day;
+			}
+			String hour = "" +cal.get(Calendar.HOUR_OF_DAY);
+			String minute = "" + cal.get(Calendar.MINUTE);
+			System.out.println(year+month+day);
+
+			String content2 = "";
+			String eol = System.lineSeparator();
+//			for (String errorInList:errorListCompiled) {
+			for (String errorInList:resultList) {
+				content2 = content2+ errorInList + eol;
+			}
+			String visited = "";
+			for (String page: getSitesVisited()) {
+				visited = visited+ page;
+			}
+			content2 = content2+eol+visited;
+
+		try {
+			boolean success = (new File(path+"/Test_Results/"+year+"/"+month+"/"+day)).mkdirs();
+
+			System.out.println(path+"/Test_Results/"+year+"/"+month+"/"+day);
+			if (!success) {
+			    System.out.println("Folder already There");
+			} else {
+				System.out.println("Success");
+			}
+
+			String fileName = path+"/Test_Results/"+year+"/"+month+"/"+day+"/output_"+sdf+".txt";
+			File output = new File(fileName);
+
+			// if file doesnt exists, then create it
+			if (!output.exists()) {
+				output.createNewFile();
+			}
+
+			FileWriter fw = new FileWriter(output.getAbsoluteFile());
+			BufferedWriter bw = new BufferedWriter(fw);
+			bw.write(content2);
+			bw.close();
+
+			for (String errorInList:errorListCompiled) {
+				logger.debug(errorInList);
+				resultString = resultString + errorInList;
+			}
+
+			sendEmail("jjean@forbes.com","pyu@forbes.com","kshah@forbes.com","["+hour+":"+minute+"_"+year+month+day+"] Hourly Selenium Tests",content2, "jjean@forbes.com");
+
+			System.out.println("Done");
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public void createFolder() {
+		DateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd...HH.mm.ss");
+		Date date = new Date();
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(date);
+		String sdf = dateFormat.format(date);
+		System.out.println(sdf);
+		String year = "" +cal.get(Calendar.YEAR);
+		String month = "" +(cal.get(Calendar.MONTH)+1);
+		System.out.println(year);
+		System.out.println(month);
+		if(month.length()<2) {
+			month = "0"+month;
+		}
+		String day = "" +cal.get(Calendar.DAY_OF_MONTH);
+		if(day.length()<2){
+			day = "0"+day;
+		}
+		System.out.println(year+month+day);
+
+		String path = System.getProperty("user.dir");
+
+		boolean success = (new File(path+"/Test_Results/"+year+"/"+month+"/"+day)).mkdirs();
+
+		System.out.println(path+"/Test_Results/"+year+"/"+month+"/"+day);
+		if (!success) {
+		    System.out.println("Folder not created");
+		} else {
+			System.out.println("Success");
+		}
+	}
+
+	@Test
+	public void quitBrowser() {
+		if(driver != null)
+			driver.quit();
+		logger.debug("Exiting Webdriver");
+	}
+
+	@Test
+	public String runJQuery(String js) {
+		JQueryCounter++;
+//		if (JQueryCounter > 5) {
+			String im =
+			   "var head= document.getElementsByTagName('head')[0];"+
+				"var script= document.createElement('script');"+
+			"  script.type= 'text/javascript';"+
+			   "script.src= 'http://forbeslabs.forbes.com/js/jquery-1.9.1.js';"+
+			   "head.appendChild(script);";
+			selenium.getEval(im);
+			System.out.println(selenium.getEval(im));
+//		}
+//		}else{
+//			logger.debug("Element does not exist: " +js);
+//		}
+		int i= 1;
+		String jqueryCheck = "window['$'] != undefined;";
+		while (selenium.getEval(jqueryCheck) == "false") {
+			System.out.println(i+" jQuery is not defined yet");
+			selenium.getEval(im);
+			i++;
+			if (i>500) {
+				return "-2";
+			}
+		}
+		System.out.println(selenium.getEval(js));
+		return selenium.getEval(js);
+	}
+
+	@Test
+	/**
+	 * Clicks on the selected anchor tag.
+	 *
+	 * @param  selector A JQuery selector in string form.
+	 * @return void
+	 * @see         click
+	 */
+	public void click(String selector) {
+		// The parameter of this method must be an anchor tag
+		// .ie "$('a')[0]"
+		String link = runJQuery(selector+".href"); //Grabs the href of the link selected
+		get(link); //Goes to the href of the link using the get method above
+	}
+
+	@Test
+	public void clickMobile(String selector) {
+		// The parameter of this method must be an anchor tag
+		// .ie "$('a')[0]"
+		String link = runJQuery(selector+".href"); //Grabs the href of the link selected
+		get(link +"?view=mobile-a/"); //Goes to the href of the link using the get method above
+	}
+
+	@Test
+	public void openPage(final String link) {
+		Thread thread = new Thread() {
+			@Test
+			@Override
+			public void run() {
+				driver.get(link);
+			}
+		};
+
+		thread.start();
+		try {
+			thread.join(4000);
+			if(thread.isAlive()) {
+				while(thread.isAlive()) {
+					logger.debug("Thread is still alive. Stopping Window.");
+					WebElement element = driver.findElement(By.tagName("body"));
+					element.sendKeys(Keys.ESCAPE);
+					if (!driver.toString().contains("InternetExplorerDriver")) {
+						selenium.getEval("window.stop()");
+					} else {
+						selenium.getEval("document.execCommand('Stop');");
+					}
+				}
+			} else {
+				logger.debug("Thread finished in time.");
+			}
+			logger.debug("Finished with thread.");
+		} catch(InterruptedException ex) {
+			logger.error(ex.getMessage(), ex);
+		}
+	}
+
+	@Test
+	public void testGalleryPage() {
+		logger.debug("This page is a gallery page.");
+		//picture
+		test(Integer.parseInt(runJQuery("$('#galleryslide img').length")) != 0, "There is a picture on this page.", "There is no picture on this page.");
+		//description
+		test(Integer.parseInt(runJQuery("$('#gallerycontain>p').length")) != 0, "There is a description on this page.","There is no description on this page.");
+		//title
+		test(Integer.parseInt(runJQuery("$('#galleryhed').length")) != 0, "There is a picture title on this page.", "There is no picture title on this page.");
+		//profilelink
+		test(Integer.parseInt(runJQuery("$('#gallerycontain>h3.profilelink').length")) != 0, "There is a profile link on this page.", "There is no profiile link on this page.");
+		//top leaderboard ad
+		test(Integer.parseInt(runJQuery("$('#leaderboardad').length")) !=0, "There is a leaderboard ad on the top of this page.", "There is no leaderboard ad on the top of this page.");
+		//bottom leaderboard ad
+		test(Integer.parseInt(runJQuery("$('#bottom_lb_ad').length")) != 0, "There is a leaderboard ad on the bottom of this page.", "There is no leaderboard ad on the bottom of this page.");
+		//navigator
+		test(Integer.parseInt(runJQuery("$('#gallerynav>.iconoverlay').length")) ==2, "The Gallery Navigator exists on this page","The Gallery Navigator does not Exist on this page");
+		//share module
+		test(!driver.findElement(By.className("controls")).equals(null),"The share module is present","The share module is not present");
+		//sponsorship
+		test(Integer.parseInt(runJQuery("$('div#sponsorship').length")) !=0, "The sponsorship exists on this page.", "The sponsorship does not exist on this page.");
+		//block ad
+		test(Integer.parseInt(runJQuery("$('div.ad').length")) !=0, "There is a rec ad on this page.","There is no rec ad on this page.");
+		// text ad
+		test(Integer.parseInt(runJQuery("$('div#blockad').length")) !=0, "There is a text ad on this page.","There is no text ad on this page.");
+		//l list gallery
+		if(Integer.parseInt(runJQuery("$('#listgallery').length")) != 0) {
+			test(Integer.parseInt(runJQuery("$('#listgallery').length")) !=0, "There is a listnav for this page", "There is no listnav for this page");
+			test(Integer.parseInt(runJQuery("$('#listgallery a.links').length")) !=0, "There is a link to the list of this gallery","There is no link to the list of this gallery");
+			test(Integer.parseInt(runJQuery("$('#listgallery>a.back').length")) != 0, "There is a previous button in the listnav of this page.", "There is no previous button in the listnav of this page.");
+			test(Integer.parseInt(runJQuery("$('#listgallery>a.next').length")) != 0, "There is a next button in the listnav of this page.", "There is no next button in the listnav of this page.");
+		}
+	}
+
+	@Test
+	public void testArticlePage() {
+		logger.debug("This page is an article page.");
+		logger.debug("Testing ads");
+		test(!driver.findElement(By.id("leaderboardad")).equals(null),"There is a leaderboard ad", "There is no leaderboard ad");
+//			int size = driver.findElements(By.className("block ad")).size();
+//			test(size == 4,"There are the appropriate number of block ads on the right rail","There are only " +size+ " block ads on the right rail.");
+//			if (size < 4) {
+//				test(!driver.findElement(By.className("block ad sticky")).equals(null),"The sticky ad is present","The sticky ad is not present");
+//			}
+
+		logger.debug("Testing comments");
+		test(!driver.findElements(By.className("comments")).equals(null),"There is a comment section","There is no comment section.");
+		if (!driver.findElements(By.className("comments")).equals(null)) {
+			logger.debug("Testing input for comments");
+			test(!driver.findElements(By.className("user_comment_textarea")).equals(null),"There is an input section in the comment area","There is no input section in the comment area.");
+		}
+
+		//Testing Follow Bar
+		logger.debug("Testing Follow Bar");
+		test(!driver.findElement(By.id("follow_bar")).equals(null),"The followbar is present","The followbar is not present");
+
+		//Testing Sharing
+		logger.debug("Testing Share Module");
+		test(!driver.findElement(By.className("controls")).equals(null),"The share module is present","The share module is not present");
+
+		//Testing Follow Button
+		logger.debug("Testing Follow LInk");
+		test(driver.findElement(By.className("follow_unireg_link")).getAttribute("href").equals("javascript://follow"),"The Follow button is functioning","The Follow Button is not functioning");
+	}
+
+	@Test
+	public boolean test404() {
+		String url = driver.getCurrentUrl();
+		if (url.contains("forbes.com")) {
+			int found = Integer.parseInt(runJQuery("$('body.not_found_404').length"));
+			test(found<=0, "Page did not 404" , "Page is 404ing");
+			if (found<=0) {
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+			logger.debug("Skipped: This is not a Forbes page and the 404 test does not apply.");
+			return false;
+		}
+	}
+
+	public boolean testUnavailable() {
+		String url = driver.getCurrentUrl();
+		if (url.contains("forbes.com")) {
+			test((!driver.findElement(By.cssSelector("BODY")).getText().matches("^[\\s\\S]*We are temporarily Unavailable due to scheduled maintenance.\\.[\\s\\S]*$")), "Page: '" + driver.getCurrentUrl() + "' was available" , "Page: '" + driver.getCurrentUrl()+ "' was unavailable");
+			if ((!driver.findElement(By.cssSelector("BODY")).getText().matches("^[\\s\\S]*We are temporarily Unavailable due to scheduled maintenance.\\.[\\s\\S]*$"))) {
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+			return true;
+		}
+	}
+
+	public boolean isForbes() {
+		if (driver.getCurrentUrl().contains("forbes.com")) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public boolean isPageOK() {
+		test((isForbes() && !test404() && !testFreemarker() && !testUnavailable()), driver.getCurrentUrl()+ " is OKAY.", driver.getCurrentUrl()+ " is not OKAY." );
+		if (isForbes() && !test404() && !testFreemarker() && !testUnavailable()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	@Test
+	public void testPage() {
+		if (isPageOK()) {
+			if (driver.getCurrentUrl().contains("sites") && driver.findElements(By.tagName("meta")).get(8).getAttribute("content").equals("article")) {
+				testArticlePage();
+			}
+			if (driver.getCurrentUrl().contains("gallery") ) {
+				testGalleryPage();
+			}
+		}
+	}
+
+	@Test
+	public void welcomeAd() {
+
+		//Name of the test
+		testName = "Welcome Ad Test";
+		//This test runs every time the welcome ad cookie resets
+
+		logger.debug("Test: " +testName);
+
+		get("http://www.forbes.com");
+
+		///////////////////////////////BEGIN CONTEXT OF THE TEST//////////////////////////////////////////////////////////////////////
+
+		//Return the Title is correct
+		test(driver.getTitle().equals("Welcome to Forbes"),"The title of the welcome ad is Welcome to Forbes","The title of the welcome ad is not 'Welcome to Forbes'");
+
+		//Test 'Advertisement' is showing above the ad
+		//verify advertisement text above the advertisement
+		test(driver.findElement(By.cssSelector("BODY")).getText().matches("^[\\s\\S]*ADVERTISEMENT[\\s\\S]*$"),"Advertisement is showing above the ad correctly","ERROR: The word ADVERTISEMENT is not displaying above on the Welcome Ad Page");
+
+		//Test Forbes Thought of the Day
+		test(driver.findElement(By.cssSelector("BODY")).getText().matches("^[\\s\\S]*Forbes Thought Of The Day[\\s\\S]*$"),"Thoughts is present","ERROR: Thoughts is not present");
+
+		//Test Ad is showing
+		test(driver.findElement(By.cssSelector("div.ad_wrapper")) != null,"Advertisement is dispalying correctly","ERROR: Advertisement is not displaying on the Welcome Ad");
+
+		//click continue link
+		driver.findElement(By.linkText("Continue to Site »")).click();
+
+		//validate that the Forbes Page is showing
+		//test(driver.getTitle().matches("^[\\s\\S]*Information for the World's Business Leaders - Forbes.com[\\s\\S]*$"),"The Welcome Ad has redirected to the Forbes page properly","ERROR: The Welcome Ad did not redirect to the Forbes page properly, the title is: " +driver.getTitle());
+
+		//validate URL contains www.forbes.com
+		String url = driver.getCurrentUrl();
+		test(driver.getCurrentUrl().contains("www.forbes.com"),"The redirected URL is www.forbes.com","ERROR:The redirected URL is NOT www.forbes.com, it is " +url);
+
+		//validate that All Rights Reserved shows on page
+//		test(driver.findElement(By.cssSelector("BODY")).getText().matches("^[\\s\\S]*All Rights Reserved[\\s\\S]*$"),"The Text: 'All Rights Reserved' is showing on Forbes.com","ERROR:The Text: 'All Rights Reserved' is NOT showing on Forbes.com");
+
+		///////////////////////////////END CONTEXT OF THE TEST//////////////////////////////////////////////////////////////////////
+		//Summarize the test
+		testSummary();
+	}
+
+	@Test
+	public void randomTest() {
+		get("http://www.forbes.com");
+		test(driver.getTitle().equals("Welcome to Forbes"),"The title of the welcome ad is Welcome to Forbes","The title of the welcome ad is not 'Welcome to Forbes'");
+		get("http://www.nytimes.com");
+		get("http://www.yahoo.com");
+	}
+
+	@Test
+	public void mobileTestLegacy() {
+		testName = "Mobile Legacy Test";
+		logger.debug("Executing Test: " +testName);
+		get("http://www.forbes.com");
+		get("http://www.forbes.com");
+		File file = new File("C:/Users/bpoon/Dropbox/Selenium/Phoebe's Tests/legacyurlfiltered.txt"); //C:\Users\bpoon\Dropbox\Selenium\Phoebe's Tests
+		FileInputStream fis = null;
+		BufferedInputStream bis = null;
+		DataInputStream dis = null;
+		try {
+			fis = new FileInputStream(file);
+			//bis = new BufferedInputStream(file);
+			bis = new BufferedInputStream(fis);
+			//dis = new DataInputStream(file);
+			dis = new DataInputStream(fis);
+			while (dis.available() !=0) {
+				String dis2 = dis.readLine() + "/?view=mobile-a";
+				String dis3 =dis2.replaceAll("www.", "www-staging.");
+//				get(dis3);
+				get(dis2);
+				driver.manage().timeouts().implicitlyWait(1, TimeUnit.SECONDS);
+				//Object pagesource =jsExecutor.executeScript("jQuery('.publications').text().match('Market Data by Morningstar')");
+				//System.out.println(pagesource);
+				//test(pagesource==null, "Not a mobile page", "Is a mobile page");
+
+				test(driver.findElement(By.cssSelector(".universal-footer")).getText().matches("^[\\s\\S]*Market Data by Morningstar[\\s\\S]*$"), driver.getCurrentUrl()+" is not a mobile page", driver.getCurrentUrl()+" Is a mobile page");
+			}
+		fis.close();
+		bis.close();
+
+
+
+		dis.close();
+		}catch(FileNotFoundException e) {
+			e.printStackTrace();
+		}catch (IOException e) {
+			e.printStackTrace();
+		}
+		testSummary();
+	}
+
+	public void TestLegacy() {
+		testName = "Temp Legacy Test";
+		logger.debug("Executing Test: " +testName);
+		get("http://www.forbes.com");
+		get("http://www.forbes.com");
+		File file = new File("C:/Users/bpoon/Dropbox/Selenium/Phoebe's Tests/legacyurlfiltered.txt"); //C:\Users\bpoon\Dropbox\Selenium\Phoebe's Tests
+		FileInputStream fis = null;
+		BufferedInputStream bis = null;
+		DataInputStream dis = null;
+		try {
+			fis = new FileInputStream(file);
+			//bis = new BufferedInputStream(file);
+			bis = new BufferedInputStream(fis);
+			//dis = new DataInputStream(file);
+			dis = new DataInputStream(fis);
+			while (dis.available() !=0) {
+//				String dis2 = dis.readLine() + "/?view=mobile-a";
+				String dis1 = dis.readLine();
+//				String dis2 =dis1.replaceAll("www.", "www-staging.");
+//				get(dis3);
+				get(dis1);
+				driver.manage().timeouts().implicitlyWait(1, TimeUnit.SECONDS);
+				//Object pagesource =jsExecutor.executeScript("jQuery('.publications').text().match('Market Data by Morningstar')");
+				//System.out.println(pagesource);
+				//test(pagesource==null, "Not a mobile page", "Is a mobile page");
+
+//				test(driver.findElement(By.cssSelector(".universal-footer")).getText().matches("^[\\s\\S]*Market Data by Morningstar[\\s\\S]*$"), driver.getCurrentUrl()+" is not a mobile page", driver.getCurrentUrl()+" Is a mobile page");
+			}
+		fis.close();
+		bis.close();
+
+
+
+		dis.close();
+		}catch(FileNotFoundException e) {
+			e.printStackTrace();
+		}catch (IOException e) {
+			e.printStackTrace();
+		}
+		testSummary();
+	}
+
+	public void listofLanders() {
+		testName = "List Lander Test";
+		logger.debug("Executing Test: " +testName);
+		get("http://www.forbes.com");
+		File file = new File("C:/Users/bpoon/Dropbox/Selenium/Phoebe's Tests/landersList.txt"); //C:\Users\bpoon\Dropbox\Selenium\Phoebe's Tests
+		FileInputStream fis = null;
+		BufferedInputStream bis = null;
+		DataInputStream dis = null;
+		try {
+			fis = new FileInputStream(file);
+			//bis = new BufferedInputStream(file);
+			bis = new BufferedInputStream(fis);
+			//dis = new DataInputStream(file);
+			dis = new DataInputStream(fis);
+			while (dis.available() !=0) {
+				String dis1 = dis.readLine();
+				get(dis1);
+				driver.manage().timeouts().implicitlyWait(1, TimeUnit.SECONDS);
+			}
+		fis.close();
+		bis.close();
+		dis.close();
+		}catch(FileNotFoundException e) {
+			e.printStackTrace();
+		}catch (IOException e) {
+			e.printStackTrace();
+		}
+		testSummary();
+	}
+
+	@Test
+		public void listTest(String url) {
+		//get("http://www.forbes.com/");
+		get("http://www-staging-3.forbes.com/indonesia-billionaires/");
+		get(url);
+		testName = "List:"+driver.getTitle();
+		logger.debug("Executing Test: " +testName);
+		nextPageTest(runJQuery("$('#listbody a')[0].href"));
+//		previousPageTest(driver.getCurrentUrl());
+	}
+
+	public void nextPageTest(String url) {
+		testName = "Next Page:"+url;
+		logger.debug("Executing Test: " +testName);
+		get("http://www.forbes.com");
+		get(url);
+//		click("$('div#gigyalogindiv tbody>tr>td>center>table>tbody>tr>td>table>tbody>tr>td>table>tbody>tr>td>center>div')[0]");
+		while(Integer.parseInt(runJQuery("$('#listnav a.next').length"))!=0) {
+			profilePic(); //checks if a picture exists and then if it exists, it checks whether or not it's a grayman
+			profileChecker(); //checks leaderboardad, right rail and the load more for more articles
+			profileBio(); //checks if the profile bio exists and if it is an actual description
+//			venueOwner();
+			profileDropDown(); //checks that the profile drop down is updated to the right month and year
+//			followButton();
+//			totalAnnualCostColleges();
+			profilePhotos();
+//			SATcompositeRange();
+//			thatLogo();
+//			mapWorks();
+			NetworthMonth(); //Checks the Networth on the profile is updated to the current month and year *kshah*
+//			ForbesLicenseLogo(); // Checks if the Forbes Licensing Logo exists on the profile page "kshah"
+			String js1 = "$('#listnav a.next').text()";
+			String titles = runJQuery(js1);
+//			System.out.println(titlez);
+			String[] parts =titles.split(" #");
+			String titles1= parts[0];
+			test(runJQuery("$('#listnav a.next').length") !="0","Next button exists", "Next button does not exist");
+			System.out.println(titles1);
+			click("$('#listnav a.next')[0]");
+		}
+		profilePic();
+		profileChecker();
+		profileBio();
+//		thatLogo();
+		profilePhotos();
+//		SATcompositeRange();
+		profileDropDown();
+//		mapWorks();
+//		venueOwner();
+		NetworthMonth();
+//		ForbesLicenseLogo();
+		testSummary();
+		}
+
+	public void previousPageTest(String url) {
+		testName = "Previous Page";
+		logger.debug("Executing Test: " +testName);
+		get("http://www.forbes.com");
+		get(url);
+
+		while(runJQuery("$('#listnav a.previous').length") !="0") {
+			String js1 = "$('#listnav a.previous').text()";
+			String titles = runJQuery(js1);
+			test(driver.findElement(By.cssSelector("#listnav a.previous"))!=null,"Previous button exists", "Previous button does not exist");
+			click("$('#listnav a.previous')[0]");
+			String js2 = "$('[property=\"og:title\"]')[0].content";
+			String previousPage = runJQuery(js2);
+			test(titles.contains(previousPage), "Previous Button after this Page matches this Page", "Previous Button after this Page does not match this Page");
+	/*
+			//System.out.println(nextPage);
+			if (titlez1 != nextPage) {
+				System.out.println("Error, Next Button does not match Next Page");
+			}
+	*/
+			}testSummary();
+
+		}
+
+
+	public void profilePic() {
+		testName = "Profile Picture";
+		logger.debug("Executing Test: " +testName);
+		String picture = runJQuery("$('div.profileLeft img').length");
+		test(picture!="0","A picture appears for " +driver.getCurrentUrl(),"A picture is missing on "+driver.getCurrentUrl());
+		if (picture !="0") {
+			String profilepicture = runJQuery("$('div.profileLeft img')[0].src");
+			test(!profilepicture.equals("http://images.forbes.com/media/lists/people/silhouette.gif") && !profilepicture.equals("http://i.forbesimg.com/media/lists/people/no-pic-female_197x282.jpg") && !profilepicture.equals("http://i.forbesimg.com/media/lists/companies/company-default_200x200.jpg") && !profilepicture.equals("http://i.forbesimg.com/media/lists/colleges/no-pic_416x416.jpg"), "Profile Picture Exists", "Profile Picture Does not Exist");
+		}
+	}
+
+	public void profileBio() {
+		testName = "Profile Bios";
+		logger.debug("Executing Test: "+testName);
+//		get("http://www-staging-2.forbes.com");
+//		get("http://www-staging-2.forbes.com/profile/dhanin-chearavanont/");
+//		while(Integer.parseInt(runJQuery("$('#listnav a.next').length"))!=0) {
+			String bio = "$('div.profile p#bio').text().length";
+	//		System.out.println(bio);
+			String bio2 = runJQuery(bio);
+			int bio3 = Integer.parseInt(bio2);
+			test(bio3>40,"Profile Biography exists for " +driver.getCurrentUrl(), "Profile Biography is missing for " +driver.getCurrentUrl());
+//			click("$('#listnav a.next')[0]");
+//		}
+	}
+
+	public void profileChecker() {
+		testName = "Profile Checker";
+		logger.debug("Executing Test: " +testName);
+		//At a Glance *kshah*
+		String Atglance = runJQuery("$('div.ataglanz').length");
+		test(Atglance!="0", "The At a Glance section exists", "The At a Glance section does not exist");
+		//Forbes List Section *kshah*
+		String ForbesList = runJQuery("$('div.forbeslists').length");
+		test(ForbesList!="0", "The Forbes Lists section exists", "The Forbes Lists section does not exist");
+		//Key Connections *kshah*
+		String KeyConn = runJQuery("$('div.keyConnections').length");
+		test(KeyConn!="0", "The Key Connections section exists", "The Key Connections section does not exist");
+		//check for 8 gray boxes
+		//top ad
+		String topAd = runJQuery("$('div#leaderboardad iframe').length");
+		test(topAd!="0","The Top Ad Exists", "The Top Ad Doesn't Exist");
+		//
+		String recAd = runJQuery("$('div.blockAd')[0].clientHeight");
+		int recAd2 = Integer.parseInt(recAd);
+		test(recAd2>100, "Rec Ad Exists", "Rec Ad Does not Exist");
+
+		String logo = runJQuery("$('div#sponsorship').length");
+		test(logo!="0", "Logo Exists", "Logo Does not Exist");
+		//photos
+		String photos = runJQuery("$('div#photos>ul').length");
+		test(photos!="0", "Photos Box Exists", "Photos Box Does not Exist");
+		//real time tracker
+		String realtimeTracker = runJQuery("$('div.block>h2').length");
+		test(realtimeTracker!="0", "Realtime Tracker Exists", "Realtime Tracker Does not Exist");
+		//
+		String railRec = runJQuery("$('div.blockAd')[1].clientHeight");
+		int railRec2 = Integer.parseInt(railRec);
+		test(railRec2>100, "Railrec Ad Exists", "Railrec Ad Does not Exist");
+		//gallery
+		String gallery = runJQuery("$('div.edPromo').length");
+		test(gallery!="", "Gallery Exists", "Gallery Does not Exist");
+		//related
+		String related = runJQuery("$('div.related').length");
+		test(related!="", "Related Exists", "Related Does not Exist");
+		//most read of on forbes
+		String mostRead = runJQuery("$('div.most_popular').length");
+		test(mostRead!="0", "Most Read Exists", "Most Read Does not Exist");
+		//text
+		String textAd = runJQuery("$('div.blockAd')[2].clientHeight");
+		int textAd2 = Integer.parseInt(textAd);
+		test(textAd2>100, "Text Ad Exists", "Text Ad Does not Exist");
+		String logeScript =
+				"if(($('div.blockAd')[3])) {"
+				+ "$('div.blockAd')[3].clientHeight"
+				+ "}";
+		String loge = runJQuery(logeScript);
+		int loge2 = Integer.parseInt(loge);
+		test(loge2>100, "Loge Ad Exists", "Loge Ad Does not Exist");
+		if (Integer.parseInt(runJQuery("$('div.latestNews>ul>li').length"))>9) {
+			//check if load more exists
+			String loadMore = runJQuery("$('a.plusmore').length");
+			int loadMore2 = Integer.parseInt(loadMore);
+			test(loadMore2!=0, "Load More Exists", "Load More Does not Exist");
+			//check if load more actually loads
+			String height1= runJQuery("height1=$('div.latestNews>ul').height();"
+					+"height1;");
+			int sheight1 = Integer.parseInt(height1);
+			driver.findElement(By.cssSelector("a.plusmore")).click();
+	//		try {
+	//			Thread.sleep(2000);
+	//			} catch(InterruptedException e) {
+	//			}
+
+	//		int sheight2 = Integer.parseInt(runJQuery("$('div.latestNews>ul').height();"));
+			int sheight2 =Integer.parseInt(runJQuery("$('div.latestNews>ul').height();"));
+			logger.debug(" "+sheight1);
+			logger.debug(" "+sheight2);
+
+			test(sheight2>sheight1, "Load more Works", "Load more does not work");
+		}
+
+	}
+
+	public void profileDropDown(){
+		String dropDown = runJQuery("$('div.profile select#profileDisp>option')[0].text;");
+//		System.out.println(dropDown);
+		test(dropDown.contains("November 2013"), "Drop down is updated", "Drop down is not updated");
+	}
+
+	public void NetworthMonth(){
+		// Checks the Networth is updated to the current month or not//
+		testName="Networth Month";
+		logger.debug("Executing Test: " +testName);
+		//driver.get("http://www.forbes.com/profile/carlos-slim-helu/");
+		//String Networthmonth = runJQuery("$('div.profileRight span.footnote').text;");
+		String Networthmonth = driver.findElement(By.cssSelector("span.footnote")).getText();
+//		System.out.println(Networthmonth);
+		test(Networthmonth.contains("November 2013"), "Net Worth Month is updated to current month", "Net Worth Month is not updated to current month");
+//		testSummary();
+	}
+
+	public void ForbesLicenseLogo(){
+		// Checks if the list has a Forbes Licensing Logo on the profile page//
+		testName = "Forbes Licensing Logo test";
+		logger.debug("Executing Test: " +testName);
+		//driver.get("http://www.forbes.com/companies/apple/");
+		String ForbesLogo = runJQuery("$('div.reprints_logo img').length");
+		test(ForbesLogo!="0", "The Forbes Licensing Logo Exists", "The Forbes Licensing Logo does not exist");
+	}
+
+	public void channelStreamLoadMobile() {
+		testName = "Channel Stream Mobile Load More Test";
+		get("http://www.forbes.com/");
+		get("http://www.forbes.com/business/?view=mobile-a");
+		int i=0;
+		String links = "$('div#sideNavContainer a')";
+		int linkAmount = Integer.parseInt(runJQuery(links+".length"));
+		String[] linkArray = new String[linkAmount];
+		//linkArray = ArrayUtils.removeElement(linkArray, "http://www.forbes.com/election2012-embargo");
+		//getting the list of channel links
+		for (i=0;i<linkAmount;i++) {
+			linkArray[i]=runJQuery(links+"["+i+"].href");
+		}
+		//running through each link and weeding out links that don't exist or don't have load mores
+		for (i=0;i<linkAmount;i++) {
+			System.out.println(linkArray[i]);
+			if (linkArray[i].contains("www.forbes")){
+				if (!linkArray[i].contains("video") && !linkArray[i].contains("election") && !linkArray[i].contains("enterprise") && !linkArray[i].contains("small-business-roundtable") && !linkArray[i].contains("luxury") && !linkArray[i].contains("colleges") && !linkArray[i].contains("global2000") && !linkArray[i].contains("promising-companies") && !linkArray[i].contains("billionaires") && !linkArray[i].contains("forbes400") && !linkArray[i].contains("celebrities") && !linkArray[i].contains("private") && !linkArray[i].contains("powerful-people") && !linkArray[i].contains("power-women") && !linkArray[i].contains("zip-codes") && !linkArray[i].contains("bestplaces")) {
+					get(linkArray[i]+"/?view=mobile-a");
+					String height1= runJQuery("height1=$('section#stream').height();"
+							+"height1;");
+					int sheight1 = Integer.parseInt(height1);
+					driver.findElement(By.cssSelector("div#loadMore")).click();
+					int sheight2 =Integer.parseInt(runJQuery("$('section#stream').height();"));
+					logger.debug(" "+sheight1);
+					logger.debug(" "+sheight2);
+					test(sheight2>sheight1, "Load more Works First Time", "Load more does not work first time");
+					driver.findElement(By.cssSelector("div#loadMore")).click();
+					int sheight3 =Integer.parseInt(runJQuery("$('section#stream').height();"));
+					logger.debug(" "+sheight2);
+					logger.debug(" "+sheight3);
+					test(sheight3>sheight2, "Load more Works Second Time", "Load more does not work second time");
+				}
+			 }else{
+//				 test(false, "i", linkArray[i] +" was not checked.");
+				 if(!linkArray[i].contains("thoughts")) {
+					get(linkArray[i]+"/?view=mobile-a");
+					String height1= runJQuery("height1=$('ul.stream_content').height();"
+							+"height1;");
+					int sheight11 = Integer.parseInt(height1);
+					driver.findElement(By.cssSelector("span.load_more_label")).click();
+					int sheight22 =Integer.parseInt(runJQuery("$('ul.stream_content').height();"));
+					logger.debug(" "+sheight11);
+					logger.debug(" "+sheight22);
+					test(sheight22>sheight11, "Load more Works", "Load more does not work");
+				 }else {
+					 test(false, "", linkArray[i] +" was not checked.");
+				 }
+			}
+		}
+		testSummary();
+	}
+
+	public void channelStreamLoad() {
+		testName = "Channel Stream Web Load More Test";
+		get("http://www.forbes.com/");
+		get("http://www.forbes.com/");
+		get("http://www.forbes.com/business/");
+		int i=0;
+		String links = "$('div.rollover>div.right_column>div>div>ul>li')";
+		int linkAmount = Integer.parseInt(runJQuery(links+".length"));
+		String[] linkArray = new String[linkAmount];
+		//linkArray = ArrayUtils.removeElement(linkArray, "http://www.forbes.com/election2012-embargo");
+		for (i=0;i<linkAmount;i++) {
+			linkArray[i]=runJQuery(links+"["+i+"].href");
+		}
+		//running through each link and weeding out links that don't exist or don't have load mores
+		for (i=0;i<linkAmount;i++) {
+			System.out.println(linkArray[i]);
+			if (linkArray[i].contains("www.forbes")){
+				if (!linkArray[i].contains("video") && !linkArray[i].contains("election") && !linkArray[i].contains("small-business-roundtable") && !linkArray[i].contains("luxury") && !linkArray[i].contains("colleges") && !linkArray[i].contains("global2000") && !linkArray[i].contains("promising-companies") && !linkArray[i].contains("billionaires") && !linkArray[i].contains("forbes400") && !linkArray[i].contains("celebrities") && !linkArray[i].contains("private") && !linkArray[i].contains("powerful-people") && !linkArray[i].contains("power-women") && !linkArray[i].contains("zip-codes") && !linkArray[i].contains("bestplaces")) {
+					get(linkArray[i]);
+					String height1= runJQuery("height1=$('ul.contents').height();"
+							+"height1;");
+					int sheight1 = Integer.parseInt(height1);
+					driver.findElement(By.cssSelector("a.plusmore")).click();
+					int sheight2 =Integer.parseInt(runJQuery("$('ul.contents').height();"));
+					logger.debug(" "+sheight1);
+					logger.debug(" "+sheight2);
+					test(sheight2>sheight1, "Load more Works First Time", "Load more does not work first time");
+					driver.findElement(By.cssSelector("a.plusmore")).click();
+					int sheight3 =Integer.parseInt(runJQuery("$('ul.contents').height();"));
+					logger.debug(" "+sheight2);
+					logger.debug(" "+sheight3);
+					test(sheight3>sheight2, "Load more Works Second Time", "Load more does not work second time");
+				} else {
+					logger.debug(linkArray[i]);
+					test(false,"i",linkArray[i]+" was not checked.");
+				}
+			 }else{
+//				 test(false, "i", linkArray[i] +" was not checked.");
+				 if(!linkArray[i].contains("thoughts")) {
+					String height1= runJQuery("height1=$('ul.stream_content').height();"
+							+"height1;");
+					int sheight11 = Integer.parseInt(height1);
+					driver.findElement(By.cssSelector("span.load_more_label")).click();
+					int sheight22 =Integer.parseInt(runJQuery("$('ul.stream_content').height();"));
+					logger.debug(" "+sheight11);
+					logger.debug(" "+sheight22);
+					test(sheight22>sheight11, "Load more Works", "Load more does not work");
+				 }else {
+					 test(false, "", linkArray[i] +" was not checked.");
+				 }
+			}
+		}
+		testSummary();
+
+	}
+
+	public void followButton() {
+//		get("www.forbes.com");
+//		get("www.forbes.com/profile/roger-federer");
+		testName = "Follow Button";
+		logger.debug("Executing Test: " +testName);
+		test(Integer.parseInt(runJQuery("$('div.profileRight span.option_follow').length")) !=0,"Follow Button exists", "Follow Button does not exist" );
+		if (Integer.parseInt(runJQuery("$('div.profileRight span.option_follow').length")) !=0) {
+			click("$('div.profileRight span.option_follow')");
+			test(Integer.parseInt(runJQuery("$('div.window_contents').length"))!=0, "Follow Window exists", "Follow Window Does Not Exist");
+			click("$('div.load_target a.fancy_button span.label')");
+		}
+		testSummary();
+	}
+
+	public void listRunThrough(String url) {
+		testName = "Profiles on a list";
+		logger.debug("Executing Test: " +testName);
+
+		get("http://www-staging-2.forbes.com");
+		get(url);
+
+//		System.out.println(driver.findElement(By.cssSelector("#listnav a.next")));
+		int za;
+		String listLinks = "$('td.company>a')";
+		int listLinkAmount = Integer.parseInt(runJQuery(listLinks+".length"));
+//		String
+		String[] listLinkArray = new String[listLinkAmount];
+		for(za=0; za<listLinkAmount; za++) {
+			listLinkArray[za] = runJQuery(listLinks+"["+za+"].href");
+		}
+		for(za=0; za<listLinkAmount; za++){
+			get(listLinkArray[za]);
+		}
+		testSummary();
+
+	}
+
+	public void testingTesting() {
+//		get("www.forbes.com");
+//		get("www.forbes.com/profile/roger-federer");
+//		testName = "Follow Button";
+//		logger.debug("Executing Test: " +testName);
+//		test(Integer.parseInt(runJQuery("$('div.profileRight span.option_follow').length")) !=0,"Follow Button exists", "Follow Button does not exist" );
+//		if (Integer.parseInt(runJQuery("$('div.profileRight span.option_follow').length")) !=0) {
+//			click("$('div.profileRight span.option_follow')");
+//			System.out.println(driver.getWindowHandles());
+//			System.out.println(driver.switchTo());
+//			test(Integer.parseInt(runJQuery("$('div.window_contents').length"))!=0, "Follow Window exists", "Follow Window Does Not Exist");
+//			click("$('div.load_target a.fancy_button span.label')");
+//		}
+		get("www.forbes.com");
+		get("http://www-staging.forbes.com/sites/deborahljacobs/2013/08/01/seven-tips-for-traveling-with-grandchildren/?view=option2");
+//		Actions actions = new Actions(driver);
+//		actions.moveToElement(By.cssSelector("div.entity_scrim")).click().build().perform();
+
+	}
+
+	public void jQueryTest() {
+		testName="jQueryTest";
+		get("www.forbes.com");
+		get("www.forbes.com");
+		int a = Integer.parseInt(runJQuery("$('a').length"));
+		for ( int i=0;i<a;i++) {
+			String text = runJQuery("$('a')["+i+"].text");
+			test(runJQuery("$('a')["+i+"].text")=="",text+" is Blank", text+ " is not Blank");
+		}
+		testSummary();
+	}
+	public void mostPopularPage() { //need to somehow get through with the ajax, sorry for whoever works on this next
+		testName = "Most Popular Page";
+		logger.debug("Executing Test" +testName);
+		get("http://www.forbes.com");
+		get("http://www.forbes.com/most-popular");
+		//pull the amount of dropdown sections
+		String[] trendLinkArray = null;
+		int amountofLinks = 0;
+		int dropDownSections = Integer.parseInt(runJQuery("$('select.top_stories>option').length"));
+		for(int a=0; a<dropDownSections; a++){
+			driver.findElement(By.cssSelector("select.top_stories")).click();
+			driver.findElement(By.cssSelector("select.top_stores>option:nth-child("+a+")")).click();
+			String trendLinks = "$('div.stories_wrapper>ol>li a')";
+			int trendLinkAmount = Integer.parseInt(runJQuery(trendLinks+".length"));
+			trendLinkArray = new String[trendLinkAmount*dropDownSections];
+			for (int f=0;f<trendLinkAmount;f++) {
+				trendLinkArray[f+(a*trendLinkAmount)]=runJQuery(trendLinks+"["+f+(a*trendLinkAmount)+"].href");
+			}
+			for (int i =0; (i+(a*trendLinkAmount))<(dropDownSections*trendLinkAmount); i++) {
+				String sharedText = runJQuery("$('span.reason')["+i+"].innerText");
+				String j = sharedText.toString();
+				String articleLink = runJQuery("$('div.list_inner_wrapper>ol>li>a')["+i+"].href");
+				test(j.contains("views") || j.contains("Active") || j.contains("comments"), "Share reason shows up for "+articleLink, "Share reason does not show up for " +articleLink);
+			}
+			amountofLinks=dropDownSections*trendLinkAmount;
+		}
+		String socMedLinks = "$('div.list_inner_wrapper>ol>li>a')";
+		int socMedLinkAmount = Integer.parseInt(runJQuery(socMedLinks+".length"));
+		String mostReadLinks = "$('div.list_inner_wrapper>ol>li>a')";
+		int mostReadLinkAmount =  Integer.parseInt(runJQuery(mostReadLinks+".length"));
+		String popGalleriesLinks = "$('div.right_column>section.top_galleries>ul>li>a')";
+		int popGalleriesLinkAmount= Integer.parseInt(runJQuery(popGalleriesLinks+".length"));
+		int rightColumnLinkAmount = socMedLinkAmount + mostReadLinkAmount + popGalleriesLinkAmount;
+		String[] rightLinkArray = new String[rightColumnLinkAmount];
+		for (int ac = 0; ac<socMedLinkAmount; ac++) {
+			rightLinkArray[ac]=runJQuery(socMedLinks+"["+ac+"].href");
+		}
+		for (int ad = 0; ad<mostReadLinkAmount; ad++) {
+			rightLinkArray[ad]=runJQuery(mostReadLinks+"["+socMedLinkAmount+ad+"].href");
+		}
+		for (int af = 0; af<popGalleriesLinkAmount; af++) {
+			rightLinkArray[af]=runJQuery(popGalleriesLinks+"["+socMedLinkAmount+mostReadLinkAmount+af+"].href");
+		}
+		for (int ag =0; ag<rightColumnLinkAmount; ag++){
+			get(rightLinkArray[ag]);
+		}
+		for(int ab=0; ab<amountofLinks;ab++){
+			get(trendLinkArray[ab]);
+		}
+		testSummary();
+	}
+
+	public void realtimePages() { //also have to get past the ajax call on this
+		testName = "Real Time Checker";
+		logger.debug("Executing Test: " +testName);
+		get("http://www.forbes.com");
+		get("http://www.forbes.com/real-time");
+		String loadMoreButton = "$('span.load_more_label').length";
+//		for(int ia=0; ia<9; ia++) {
+//			String rtCategories = "$('ul.channel_nav>li:nth-child(";
+//			String categories = runJQuery("$('ul.channel_nav>li')["+ia+"].click();$('ul.channel_nav li')[2].innerText;");
+			driver.findElement(By.xpath("//div[@id='realtimechanneltabs']/ul/li[2]")).click();
+//			driver.findElement(By.cssSelector(rtCategories+ia+")")).click();
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			System.out.println("hi");
+//			Set<String> linksA = null;
+//			Set<String> linksG = null;
+//			int loadMore = Integer.parseInt(runJQuery(loadMoreButton));
+//			while (loadMore!=0){
+//				driver.findElement(By.cssSelector("span.load_more_label")).click();
+//			}
+//			getArticles();
+//			getGalleries();
+//			for(String linkA:linksA) {
+//				get(linkA);
+//			}
+//			for (String linkG:linksG) {
+//				get(linkG);
+//			}
+//		}
+		testSummary();
+	}
+
+	public void realTimeAll() { //this will be a temporary realtime test until we can figure out how to trigger the ajax
+		//Name of the test
+		testName = "Real Time Articles Test";
+		//This test collects all Forbes links on a page then goes to each of them and tests that they are not a forbes.com 404 page
+		logger.debug("Executing Test: " +testName);
+		get("http://www.forbes.com/real-time");
+		try {
+			Thread.sleep(18000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		get("http://www.forbes.com/real-time");
+		for(int i=0; i<4;i++){
+			if (driver.findElement(By.cssSelector("span.load_more_label")).getText().length()!=0){
+					driver.findElement(By.cssSelector("span.load_more_label")).click();
+			}else{
+				break;
+			}
+		}
+		Set<String> realtime = getArticles();
+		int i = 0;
+		for(String url : realtime) {
+			logger.debug("Getting " +url + " . " + ++i + " out of " + realtime.size());
+			get(url);
+		}
+		logger.debug("Done with the Test");
+		testSummary();
+	}
+
+	public void infiniScrolling(String url) {
+		testName = "New Article Test";
+		logger.debug("Executing Test: "+testName);
+		get("http://www.forbes.com");
+//		get("http://www.forbes.com");
+		get(url);
+		if (Integer.parseInt(runJQuery("$('div.next_article_button').length"))>0) {
+			int articles=0;
+			while(articles<10) {
+				try {
+					Thread.sleep(4000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				String currentURL = driver.getCurrentUrl();
+//				test(Integer.parseInt(runJQuery("$('div.entity_dive>div.masked_content>div.entity_articles>ul>li').length"))>3,"Success, the links on the profile bio exist","Failure, the links do not exist for "+currentURL);
+				test(Integer.parseInt(runJQuery("$('div.entity_scrim')"))>0,"Success, the author block exists","Failure, the author block does not exist at "+currentURL);
+			}
+		}else{
+			logger.debug("Next article button does not exist");
+			//test using scrolling, then do the article check
+		}
+	}
+
+	public void totalAnnualCostColleges() {
+		testName = "Total Annual Cost Colleges";
+		logger.debug("Executing Test: " +testName);
+		String glanceCode = "$('div.ataglanz ul li:nth-child(4) b').text()";
+		String costString = runJQuery(glanceCode);
+		costString = costString.replaceAll("[^0-9]","");
+		String collegeUrl = driver.getCurrentUrl();
+		int annualCost = Integer.parseInt(costString);
+		test(annualCost>1000, "Annual Cost Probably exists for " +collegeUrl,"Annual Cost does not exist for " +collegeUrl);
+	}
+
+	public void SATcompositeRange() {
+		testName = "SAT Composite Range for Colleges";
+		logger.debug("Executing Test: " +testName);
+		String glanceCode = "$('div.ataglanz ul li:last-child b').text().length";
+		String SATrange = runJQuery(glanceCode);
+		SATrange = SATrange.replaceAll("[^0-9]","");
+		String collegeUrl = driver.getCurrentUrl();
+		int SATscore = Integer.parseInt(SATrange);
+		test(SATscore>0, "SAT composite range exists for " +collegeUrl,"SAT composite range does not exist for " +collegeUrl);
+	}
+
+	public void profilePhotos(){ //checks if there's a gallery on a profile
+		testName = "Gallery Photos on Profile";
+		logger.debug("Executing Test: " +testName);
+		String collegeUrl = driver.getCurrentUrl();
+		int photoBox = Integer.parseInt(runJQuery("$('div#photos h2').length"));
+		test(photoBox!=0, "The box for the photos exists for " +collegeUrl,"The box for the photos do not exist for" +collegeUrl);
+		if (photoBox!=0){
+			driver.findElement(By.cssSelector("#photos a.exit_trigger_set")).click();
+			testGalleryPage();
+		}else{
+			String boxAmount = runJQuery("$('section#abovefold aside section').length");
+			logger.debug("There are "+boxAmount +" boxes in the right rail");
+		}
+		get(collegeUrl);
+	}
+
+	public void thatLogo() {
+		testName = "Logo Existance";
+		logger.debug("Executing test: " + testName);
+		String URL = driver.getCurrentUrl();
+		String logo = "$('section.clearfix>aside>section>div.reprints_logo>a>img')";
+		int logoExistance = Integer.parseInt(runJQuery(logo+".length"));
+		test(logoExistance<1, "Success: Logo is gone ","Failure: Logo Exists for "+URL);
+	}
+
+	public void mapWorks() {
+		testName = "Places Map";
+		logger.debug("Executing test: " + testName);
+		String URL = driver.getCurrentUrl();
+		String map = "$('div#placeMap>div').length";
+		int mapExistance = Integer.parseInt(runJQuery(map));
+		test(mapExistance>0, "Success: Map Exists", "Failure Map does not exist for " +URL);
+	}
+
+	public void socialWebMod() {
+		testName = "Social Media Box ";
+		logger.debug("Executing test: " +testName);
+		String URL = driver.getCurrentUrl();
+		String socMedLinks = "$('div.list_inner_wrapper>ol>li>a')";
+		int socMedLinkAmount = Integer.parseInt(runJQuery(socMedLinks+".length"));
+		testSummary();
+
+	}
+	public void venueOwner() {
+		testName = "Venue Owner Label";
+		logger.debug("executing test: " + testName);
+		String URL = driver.getCurrentUrl();
+		String owner =runJQuery("$('div.venue dd:nth-child(4)').text()");
+		test(!owner.contains("team"),"Success: Name is not team", "Failure: Team is not capitalized"+URL);
+	}
+
+	public void removingOptimizely() { //how to get this to disable cookie before the website loads?
+		JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
+		jsExecutor.executeScript("window['optimizely'] = window['optimizely'] || [];"+
+				"window['optimizely'].push(['disable']);");
+	}
+
+	public void refreshing(String url) {
+		logger.debug("Refreshing");
+		get("http://www-staging-2.forbes.com");
+		get(url);
+		int ij;
+		for(ij=0;ij<200;ij++) {
+			driver.navigate().refresh();
+		}
+
+	}
+
+		public void HPTest(String url) {
+
+				get("http://www.forbes.com/");
+				get(url);
+				testName = "HomePage:"+driver.getTitle();
+				logger.debug("Executing Test: " +testName);
+				//nextPageTest(runJQuery("$('#listbody a')[0].href"));
+				//HPLogin();
+				//HPCheck();
+				//HPEU();
+				//HPASIA();
+				//HPTopStory();
+				//socialWebMod();
+				//HPAvatars();
+				//RealTimeBillionaires();
+				//BillionaireTicker();// Checks if the next button on the billionaire ticker functions.
+				//HPSearchbar();
+				//MarketSearch();
+				//RealTimeBillionaires();
+				//channelStreamLoad(); //Tests Channel Page
+
+
+				//testGalleryPage(); //Tests Gallery Page
+				//HPLogin();
+
+				//GalleryPage();
+				//NetworthMonth();
+
+			}
+
+		public void HPEU(){
+			get("http://www.forbes.com/home_europe/");
+			//get(url);
+			HPCheck();
+			HPEUTopStory();
+			testSummary();
+
+		}
+
+		public void HPASIA(){
+			get("http://www.forbes.com/home_asia/");
+			//get(url);
+			HPCheck();
+			HPASIATopStory();
+			testSummary();
+
+		}
+
+		public void HPCheck() {
+			testName = "Home Page Checker";
+			logger.debug("Executing Test: " +testName);
+			//check for 8 gray boxes
+			//top ad
+			String topAd = runJQuery("$('div.leaderboardad.above_header iframe').length");
+			test(topAd!="0","The Top Ad Exists", "The Top Ad Doesn't Exist");
+			//HP Banner check
+			String hpbanner = runJQuery("$('div.leaderboard.mid_page').length");
+//			int hpb = Integer.parseInt(hpb);
+			test(hpbanner!="0", "HP Banner Exists", "HP Banner Does not Exist");
+			//Most Popular block check
+			String MostPopular = runJQuery("$('div#section.top_popular_stories').length");
+			test(MostPopular!="0", "Most Popular block Exists", "Most Popular block does not Exist");
+			//Video Block
+			String BrightCoveVideo = runJQuery("$('div.video_block').length");
+			test(BrightCoveVideo!="0", "Brightcove Video Exists", "Bright Cove Video does not exist");
+			//Social Web Tab
+/*			//Facebook
+			driver.findElement(By.xpath("/html/body/section[2]/div/section[2]/div/span"));
+			String FBIcon = runJQuery("$('div#span.icon').length");
+			test(FBIcon!="0", "Facebook Icon exist for the Active Social Web section", "Facebook Icon does not exist for the Active Social Web section");
+			driver.findElement(By.xpath("/html/body/section[2]/div/section[2]/div/span")).click();
+			String FBFeeds = runJQuery("$('div.list_wrapper').length");
+			test(FBFeeds!="0", "Feeds for the Facebook Social Web tab exists", "Feeds for the Facebook Social Web tab does not exist");
+			//Twitter
+			driver.findElement(By.xpath("/html/body/section[2]/div/section[2]/div/span[2]"));
+			String TweetIcon = runJQuery("$('div#span.icon').length");
+			test(TweetIcon!="0", "Twitter Icon exist for the Active Social Web section", "Twitter Icon does not exist for the Active Social Web section");
+			driver.findElement(By.xpath("/html/body/section[2]/div/section[2]/div/span[2]")).click();
+			String Tweets = runJQuery("$('div.list_wrapper').length");
+			test(Tweets!="0", "Feeds for the Twitter Social Web tab exists", "Feeds for the Twitter Social Web tab does not exist");
+			//LinkedIn
+			driver.findElement(By.xpath("/html/body/section[2]/div/section[2]/div/span[3]"));
+			String LinkedInIcon = runJQuery("$('div#span.icon').length");
+			test(LinkedInIcon!="0", "LinkedIn Icon exist for the Active Social Web section", "LinkedIn Icon does not exist for the Active Social Web section");
+			driver.findElement(By.xpath("/html/body/section[2]/div/section[2]/div/span[2]")).click();
+			String LinkedInFeeds = runJQuery("$('div.list_wrapper').length");
+			test(LinkedInFeeds!="0", "Feeds for the LinkedIn Social Web tab exists", "Feeds for the LinkedIn Social Web tab does not exist");
+/*		    driver.findElement(By.xpath("/html/body/section[2]/div/section[2]/div[1]/span[1]")).click();
+		    int selection = 1;
+		    String xpath_start = "/html/body/section[2]/div/section[2]/div[1]/span[";
+		    String xpath_end = "]";
+		    for (int i = 1; i <= selection; i++)
+		    driver.findElement(By.xpath(xpath_start + selection + xpath_end)).click();
+		    String feeds = runJQuery("$('div.list_wrapper').length");
+		    test(feeds!="0", "Feeds for the Social Web tabs exists", "Feeds for the Social Web tabs does not exist");*/
+		    //Forbes Video Section
+		    String LeftLargeVideo = runJQuery("$('div.large_feature.fleft').length");
+		    test(LeftLargeVideo!="0", "Left Large Video Exists", "Left Large Video does not Exist");
+		    String FourVideo = runJQuery("$('div.four_features.fleft').length");
+		    test(FourVideo!="0", "The Four featured videos Exist", "The Four featured videos don`t exist");
+		    //Market Section
+		    String Market = runJQuery("$('div.wikinvest').length");
+		    test(Market!="0", "The Market section Exists", "Market section does not Exist");
+		    //Recommended Section
+		    String Recommend = runJQuery("$('div.edittools-promoblock.eight_features').length");
+		    test(Recommend!="0", "Recommended section exists", "Recommended Section does not exist");
+			/*String recAd = runJQuery("$('div.blockAd')[0].clientHeight");
+			int recAd2 = Integer.parseInt(recAd);
+			test(recAd2>100, "Rec Ad Exists", "Rec Ad Does not Exist");
+
+			String logo = runJQuery("$('div#sponsorship').length");
+			test(logo!="0", "Logo Exists", "Logo Does not Exist");
+			//photos
+			String photos = runJQuery("$('div#photos>ul').length");
+			test(photos!="0", "Photos Box Exists", "Photos Box Does not Exist");
+			//real time tracker
+			String realtimeTracker = runJQuery("$('div.block>h2').length");
+			test(realtimeTracker!="0", "Realtime Tracker Exists", "Realtime Tracker Does not Exist");
+			//
+			String railRec = runJQuery("$('div.blockAd')[1].clientHeight");
+			int railRec2 = Integer.parseInt(railRec);
+			test(railRec2>100, "Railrec Ad Exists", "Railrec Ad Does not Exist");
+			//gallery
+			String gallery = runJQuery("$('div.edPromo').length");
+			test(gallery!="", "Gallery Exists", "Gallery Does not Exist");
+			//related
+			String related = runJQuery("$('div.related').length");
+			test(related!="", "Related Exists", "Related Does not Exist");*/
+			//most read of on forbes
+			String mostRead = runJQuery("$('div.most_popular').length");
+			test(mostRead!="0", "Most Read Exists", "Most Read Does not Exist");
+			//Universal Global Footer
+			String GFooter = runJQuery("$('div.footer-center').length");
+			test(GFooter!="0", "Global Footer Exists", "Global Footer Does not Exist");
+
+			testSummary();
+
+		}
+
+		public void HPAvatars() {
+			//String HPAvatar;
+			testName = "HP Avatars";
+			logger.debug("Executing Test: " +testName);
+			String avatar = runJQuery("$('div.avatars img').length");
+			test(avatar!="0","Avatar appears for " +driver.getCurrentUrl(),"Avatar is missing on "+driver.getCurrentUrl());
+			/*if (avatar !="0") {
+				String HPAvatar = runJQuery("$('div.avatars>ul>li img')");
+				//String HPAvatar = runJQuery("$('div.avatars img')[0].src");
+				test(!HPAvatar.equals("http://images.forbes.com/media/lists/people/silhouette.gif") && !HPAvatar.equals("http://i.forbesimg.com/media/lists/people/no-pic-female_197x282.jpg") && !HPAvatar.equals("http://i.forbesimg.com/media/lists/companies/company-default_200x200.jpg") && !HPAvatar.equals("http://i.forbesimg.com/media/lists/colleges/no-pic_416x416.jpg"), "Avatar Exists", "Avatar Does not Exist");
+			}*/
+			driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+			//driver.findElement(By.linkText(" Real-Time Billionaires ")).click();
+			RealTimeBillionaires();
+			testSummary();
+		}
+
+		public void HPLogin() {
+			testName = "Login Check";
+			logger.debug("Executing Test: " +testName);
+			driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+
+			/*driver.findElement(By.xpath("/html/body/div[2]/div[2]/div[4]")).click();
+
+			selenium.type("//*[@id='login_form_user_email']", "kshah@forbes.com");
+			selenium.type("//*[@id='login_form_password']", "forbes123");
+			selenium.click("/html/body/div[5]/div[2]/div/div/div[2]/div[2]/form/a/span");
+
+			String Actual = selenium.getText("/html/body/div[5]/div[2]/div/div/div[2]/div[2]/form/div/span[2]");
+			System.out.println(Actual);
+			String Error = "The email/username and password you entered do not match. Please try again.";
+
+			Assert.assertEquals(Actual, Error);
+
+			selenium.captureScreenshot("C://users//kshah//Desktop//capture1.png");*/
+
+
+
+		    driver.get("http://www.forbes.com/");
+		    //driver.get(baseUrl + "/");
+		    //driver.findElement(By.xpath("/html/body/div[2]/div[2]/div[4]")).click();
+		    driver.findElement(By.linkText("Log in")).click();
+		    driver.findElement(By.id("login_form_user_email")).click();
+		    driver.findElement(By.id("login_form_user_email")).clear();
+		    driver.findElement(By.id("login_form_user_email")).sendKeys("kshah@forbes.com");
+		    driver.findElement(By.id("login_form_password")).clear();
+		    driver.findElement(By.id("login_form_password")).sendKeys("forbes123");
+		    driver.findElement(By.cssSelector("span.inner > span.label")).click();
+
+
+
+			/*String Errormsg = "The email/username and password you entered do not match. Please try again.";
+		    driver.findElement(By.xpath("/html/body/div[5]/div[2]/div/div/div[2]/div[2]/form/div/span[2]"));
+			if(driver.findElement(By.xpath("/html/body/div[5]/div[2]/div/div/div[2]/div[2]/form/div/span[2]")).getText().contains(Errormsg)) {
+			   System.out.println(Errormsg +" Member Login is not successful");
+			return;
+			} else {
+			System.out.println("Memeber Login is successful ");
+			return;
+			}
+		    //String Errormsg;
+		    //if(Errormsg = "The email/username and password you entered do not match. Please try again."){*/
+
+
+		    String Errormsg = runJQuery("$('div.main_error_msg').length");
+		    //String Errormsg = "The email/username and password you entered do not match. Please try again.";
+			test(Errormsg!="0", "Member Login Successful", "Member Login Failed!!");
+
+			//selenium.captureScreenshot("C://users//kshah//Desktop//error.png");
+			testSummary();
+
+
+
+}
+
+
+			public void MarketSearch(){
+				testName = "Home Page Market Search";
+				logger.debug("Executing Test: " +testName);
+				//WebDriverWait wait = new WebDriverWait(driver, 10);
+
+				driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+				driver.get("http://www.wikinvest.com/partner/Forbes/oauth/api/getwidewidgetframe?l=home");
+				driver.findElement(By.id("nvLiveSearchInputtickerBoard")).clear();
+			    driver.findElement(By.id("nvLiveSearchInputtickerBoard")).sendKeys("GOOG");
+			    driver.findElement(By.linkText("Google Inc. (GOOG)")).click();
+			    String k = driver.getCurrentUrl();
+			    //String Link = "http://www.forbes.com/companies/google/financial/GOOG/";
+				test(k!="0", "Market Ticker is showing correct data", "Market Ticker is showing incorrect data");
+
+				testSummary();
+			}
+
+
+			public void HPTopStory(){
+				testName = "Home Page Top Story";
+				logger.debug("Executing Test: " +testName);
+
+				String TopStory = runJQuery("$('div.edittools-promoblock.mainstory_withheadlines').length");
+				test(TopStory!="0", "Home Page Top Story exists", "Home Page Top Story does not exist");
+				//String TopStoryPic = runJQuery("$('div#mainstory_withheadlines img')");
+				String TopStoryPic = "/html/body/section/div/div[3]/article/a/img";
+				test(TopStoryPic!="0","A picture appears for " +driver.getCurrentUrl(),"A picture is missing on "+driver.getCurrentUrl());
+				if (TopStoryPic !="0") {
+					String profilepicture = "/html/body/section/div/div[3]/article/a/img";
+					test(!profilepicture.equals("http://images.forbes.com/media/lists/people/silhouette.gif") && !profilepicture.equals("http://i.forbesimg.com/media/lists/people/no-pic-female_197x282.jpg") && !profilepicture.equals("http://i.forbesimg.com/media/lists/companies/company-default_200x200.jpg") && !profilepicture.equals("http://i.forbesimg.com/media/lists/colleges/no-pic_416x416.jpg"), "Profile Picture Exists", "Profile Picture Does not Exist");
+				}
+			}
+
+				public void HPEUTopStory(){
+					testName = "Home Page-Europe Top Story";
+					logger.debug("Executing Test: " +testName);
+
+					String TopStory = runJQuery("$('div.edittools-promoblock.mainstory_withheadlines').length");
+					test(TopStory!="0", "Home Page Top Story exists", "Home Page Top Story does not exist");
+					//String TopStoryPic = runJQuery("$('div#mainstory_withheadlines img')");
+					String TopStoryPic = "/html/body/section/div/div[3]/article/a/img";
+					test(TopStoryPic!="0","A picture appears for " +driver.getCurrentUrl(),"A picture is missing on "+driver.getCurrentUrl());
+					if (TopStoryPic !="0") {
+						String profilepicture = "/html/body/section/div/div[3]/article/a/img";
+						test(!profilepicture.equals("http://images.forbes.com/media/lists/people/silhouette.gif") && !profilepicture.equals("http://i.forbesimg.com/media/lists/people/no-pic-female_197x282.jpg") && !profilepicture.equals("http://i.forbesimg.com/media/lists/companies/company-default_200x200.jpg") && !profilepicture.equals("http://i.forbesimg.com/media/lists/colleges/no-pic_416x416.jpg"), "Profile Picture Exists", "Profile Picture Does not Exist");
+					}
+
+			}
+				public void HPASIATopStory(){
+					testName = "Home Page-Asia Top Story";
+					logger.debug("Executing Test: " +testName);
+
+					String TopStory = runJQuery("$('div.edittools-promoblock.mainstory_withheadlines').length");
+					test(TopStory!="0", "Home Page Top Story exists", "Home Page Top Story does not exist");
+					//String TopStoryPic = runJQuery("$('div#mainstory_withheadlines img')");
+					String TopStoryPic = "/html/body/section/div/div[3]/article/a/img";
+					test(TopStoryPic!="0","A picture appears for " +driver.getCurrentUrl(),"A picture is missing on "+driver.getCurrentUrl());
+					if (TopStoryPic !="0") {
+						String profilepicture = "/html/body/section/div/div[3]/article/a/img";
+						test(!profilepicture.equals("http://images.forbes.com/media/lists/people/silhouette.gif") && !profilepicture.equals("http://i.forbesimg.com/media/lists/people/no-pic-female_197x282.jpg") && !profilepicture.equals("http://i.forbesimg.com/media/lists/companies/company-default_200x200.jpg") && !profilepicture.equals("http://i.forbesimg.com/media/lists/colleges/no-pic_416x416.jpg"), "Profile Picture Exists", "Profile Picture Does not Exist");
+					}
+				}
+
+				public void BillionaireTicker(){
+					testName = "Billionaire Ticker On Home Page";
+					logger.debug("Executing Test: " +testName);
+					//while(Integer.parseInt(runJQuery("$('#ticker-container a.bx-next').length"))!=0){
+
+						String next1 = "$('#ticker-container a.bx-next').text()";
+						String titles = runJQuery(next1);
+						String[] parts =titles.split(" #");
+						String tickers= parts[0];
+						test(runJQuery("$('#ticker-container a.bx-next').length") !="0","Ticker Next button exists", "Ticker Next button does not exist");
+						System.out.println(tickers);
+						driver.findElement(By.xpath("//*[@id='ticker-next']")).click();
+						//click("$('#ticker-container a.bx-next')");
+					//}
+					testSummary();
+
+
+				}
+
+				public void RealTimeBillionaires(){
+
+					testName = "Real Time Billionaire Page Check";
+					logger.debug("Executing Test: " +testName);
+					driver.get("http://www.forbes.com/real-time-billionaires/");
+
+					String nxt1 = "$('#ticker a.bx-next').text()";
+					String titles = runJQuery(nxt1);
+					String[] parts =titles.split(" #");
+					String ticker= parts[0];
+					test(runJQuery("$('#ticker a.bx-next').length") !="0","The Market Ticker Next button exists", "The Market Ticker Next button does not exist");
+					System.out.println(ticker);
+					driver.findElement(By.xpath("//*[@id='ticker-next']")).click();
+
+					String picture = runJQuery("$('div#winlose img').length");
+					test(picture!="0","Picture appears for " +driver.getCurrentUrl(),"Picture is missing on "+driver.getCurrentUrl());
+					if (picture !="0") {
+						String Picture = runJQuery("$('div#winlose>ul>li img')");
+						test(!Picture.equals("http://images.forbes.com/media/lists/people/silhouette.gif") && !Picture.equals("http://i.forbesimg.com/media/lists/people/no-pic-female_197x282.jpg") && !Picture.equals("http://i.forbesimg.com/media/lists/companies/company-default_200x200.jpg") && !Picture.equals("http://i.forbesimg.com/media/lists/colleges/no-pic_416x416.jpg"), "Picture Exists", "Picture Does not Exist");
+					}
+
+/*					driver.manage().window().maximize();
+					WebElement we;
+
+					we=driver.findElement(By.xpath("//*[@id='thelist']"));
+					List<WebElement> rowCollection=we.findElements(By.xpath("//*[@id='thelist']/tbody/tr"));
+					System.out.println("Table nameis"+we.getText());
+					System.out.println();
+					List rows=we.findElements(By.tagName("tr"));
+					Iterator i=rows.iterator();
+					while(i.hasNext())
+					{
+					List col=((WebElement)i.next()).findElements(By.tagName("tr"));
+					Iterator c=col.iterator();
+					while(i.hasNext())
+					{ System.out.print(((WebElement)i.next()).getText()+" ");
+					}
+
+					}*/
+
+
+					testSummary();
+				}
+
+				public void GalleryPage() {
+					testName = "Gallery Page Check";
+					logger.debug("This page is a gallery page.");
+					driver.get("http://www.forbes.com/teams/chelsea/gallery/1");
+					//picture
+					test(Integer.parseInt(runJQuery("$('#galleryslide img').length")) != 0, "There is a picture on this page.", "There is no picture on this page.");
+					//description
+					test(Integer.parseInt(runJQuery("$('#gallerycontain>p').length")) != 0, "There is a description on this page.","There is no description on this page.");
+					//title
+					test(Integer.parseInt(runJQuery("$('#galleryhed').length")) != 0, "There is a picture title on this page.", "There is no picture title on this page.");
+					//profilelink
+					test(Integer.parseInt(runJQuery("$('#gallerycontain>h3.profilelink').length")) != 0, "There is a profile link on this page.", "There is no profiile link on this page.");
+					//top leaderboard ad
+					test(Integer.parseInt(runJQuery("$('#leaderboardad').length")) !=0, "There is a leaderboard ad on the top of this page.", "There is no leaderboard ad on the top of this page.");
+					//bottom leaderboard ad
+					test(Integer.parseInt(runJQuery("$('#bottom_lb_ad').length")) != 0, "There is a leaderboard ad on the bottom of this page.", "There is no leaderboard ad on the bottom of this page.");
+					//navigator
+					test(Integer.parseInt(runJQuery("$('#gallerynav>.iconoverlay').length")) ==2, "The Gallery Navigator exists on this page","The Gallery Navigator does not Exist on this page");
+					//share module
+					test(!driver.findElement(By.className("controls")).equals(null),"The share module is present","The share module is not present");
+					//sponsorship
+					test(Integer.parseInt(runJQuery("$('div#sponsorship').length")) !=0, "The sponsorship exists on this page.", "The sponsorship does not exist on this page.");
+					//block ad
+					test(Integer.parseInt(runJQuery("$('div.ad').length")) !=0, "There is a rec ad on this page.","There is no rec ad on this page.");
+					// text ad
+					test(Integer.parseInt(runJQuery("$('div#blockad').length")) !=0, "There is a text ad on this page.","There is no text ad on this page.");
+					//l list gallery
+					if(Integer.parseInt(runJQuery("$('#listgallery').length")) != 0) {
+						test(Integer.parseInt(runJQuery("$('#listgallery').length")) !=0, "There is a listnav for this page", "There is no listnav for this page");
+						test(Integer.parseInt(runJQuery("$('#listgallery a.links').length")) !=0, "There is a link to the list of this gallery","There is no link to the list of this gallery");
+						test(Integer.parseInt(runJQuery("$('#listgallery>a.back').length")) != 0, "There is a previous button in the listnav of this page.", "There is no previous button in the listnav of this page.");
+						test(Integer.parseInt(runJQuery("$('#listgallery>a.next').length")) != 0, "There is a next button in the listnav of this page.", "There is no next button in the listnav of this page.");
+					}
+					testSummary();
+				}
+
+				public void HPSearchbar(){
+
+					testName="Home Page Search Bar Check";
+					logger.debug("Executing Test: " +testName);
+					driver.get("http://www.forbes.com/");
+
+					driver.findElement(By.name("q")).clear();
+					driver.findElement(By.name("q")).sendKeys("Apple");
+					driver.findElement(By.className("typeahead_highlight")).click();
+					String search = driver.getCurrentUrl();
+					test(search!="0", "The Home Page search functions properly", "The Home Page search function does not function!!");
+					//testSummary();
+
+				}
+
+				public void TweetsDelete(){
+					testName = "Delete the Tweets";
+					logger.debug("Executing Test: " +testName);
+					driver.get("http://www.forbes.com/");
+					System.out.println("//********************* Tweets Delete *********************//");
+					driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+					driver.get("https://twitter.com/");
+					driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+					driver.findElement(By.xpath("//*[@id='signin-email']")).clear();
+					driver.findElement(By.xpath("//*[@id='signin-email']")).sendKeys("forbesqatest@gmail.com");
+					driver.findElement(By.xpath("//*[@id='signin-password']")).clear();
+					driver.findElement(By.xpath("//*[@id='signin-password']")).sendKeys("forbes123");
+					driver.findElement(By.xpath("/html/body/div/div[2]/div/div/div[2]/div[2]/form/table/tbody/tr/td[2]/button")).click();
+					driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+					driver.findElement(By.xpath("/html/body/div[2]/div[2]/div/div/div/div[2]/ul/li/a")).click();
+					driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
+					driver.findElement(By.linkText("Delete")).click();
+					driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+					driver.findElement(By.xpath("/html/body/div[11]/div[2]/div[2]/div[3]/button[2]")).click();
+					driver.manage().timeouts().implicitlyWait(40, TimeUnit.SECONDS);
+					driver.findElement(By.xpath("//*[@id='user-dropdown-toggle']")).click();
+					driver.findElement(By.xpath("//*[@id='signout-button']")).click();
+
+				  }
+
+				public void test_avatars(){
+					testName = "Testing Avatars";
+					logger.debug("Executing Test: " +testName);
+					driver.get("http://www.forbes.com/");
+					//driver.findElement(By.xpath("/html/body/section[4]/div/div[2]/div/ul/li[2]/a")).click();
+					driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
+					driver.findElement(By.linkText("Business")).click();
+/*					String avatar = runJQuery("$('div.avatars img').length");
+					test(avatar!="0","Avatar appears for " +driver.getCurrentUrl(),"Avatar is missing on "+driver.getCurrentUrl());
+					if (avatar !="0") {
+						String Picture = runJQuery("$('div#winlose>ul>li img')");
+						test(!Picture.equals("http://images.forbes.com/media/lists/people/silhouette.gif") && !Picture.equals("http://i.forbesimg.com/media/lists/people/no-pic-female_197x282.jpg") && !Picture.equals("http://i.forbesimg.com/media/lists/companies/company-default_200x200.jpg") && !Picture.equals("http://i.forbesimg.com/media/lists/colleges/no-pic_416x416.jpg"), "Picture Exists", "Picture Does not Exist");
+					}*/
+					System.out.println("Yaaaay!!");
+				}
+
+				public void Gigya_FB() throws InterruptedException{
+
+					testName = "Gigya Toolbar for Facebook Sharing";
+					logger.debug("Executing: " +testName);
+
+					  //WebDriver driver = new FirefoxDriver();
+					  driver.get("http://www.forbes.com");
+					  driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+					  driver.get("http://www.forbes.com/sites/kitconews/2013/11/11/p-m-kitco-roundup-gold-modestly-lower-in-quiet-holiday-trading-bears-have-technical-edge/");
+					  String Count1 = driver.findElement(By.xpath("//*[@id='gigya_share_counter_facebook']")).getText();
+					  System.out.println("Initial Count is :" +Count1);
+					  String master = driver.getWindowHandle();
+					  driver.findElement(By.xpath("//*[@id='gigya_share_button_facebook']")).click();
+					  int timeCount = 1;
+
+					  do
+					  {
+					     driver.getWindowHandles();
+					     Thread.sleep(200);
+					     timeCount++;
+					     if ( timeCount > 50 )
+					     {
+					         break;
+					     }
+					  }
+					  while ( driver.getWindowHandles().size() == 1 );
+
+					  //Assigning the handles to a set
+					  Set<String> handles = driver.getWindowHandles();
+					  //Switching to the popup window.
+					  for ( String handle : handles )
+					  {
+					      if(!handle.equals(master))
+					      {
+					           driver.switchTo().window(handle);
+					      }
+					  }
+					  driver.findElement(By.id("email")).clear();
+					  driver.findElement(By.id("email")).sendKeys("forbesqatest@gmail.com");
+					  driver.findElement(By.id("pass")).clear();
+					  driver.findElement(By.id("pass")).sendKeys("forbes123");
+					  driver.findElement(By.xpath("//*[@id='u_0_1']")).click();
+					  driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+					  driver.findElement(By.xpath("//*[@id='u_0_1']")).click();
+					  driver.get("http://www.forbes.com/sites/kitconews/2013/11/11/p-m-kitco-roundup-gold-modestly-lower-in-quiet-holiday-trading-bears-have-technical-edge/");
+					  String Count2= driver.findElement(By.xpath("//*[@id='gigya_share_counter_facebook']")).getText();
+					  System.out.println("Final Count is :" +Count2);
+					  if (Integer.parseInt(Count1) == Integer.parseInt(Count2)){
+						  System.out.println("The Gigya Toolbaar for Facebook is not showing an increase in the shared value");
+					  }
+					  else {
+						  System.out.println("The Gigya Toolbar for Facebook is showing the change after sharing the post");
+					  }
+					  testSummary();
+
+
+				}
+
+				public void Gigya_Twitter() throws InterruptedException{
+
+					testName = "Gigya Toolbar for Twitter Sharing";
+					logger.debug("Executing: " +testName);
+
+					  driver.get("http://www.forbes.com");
+					  driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+					  driver.get("http://www.forbes.com/sites/michaelkanellos/2013/10/28/erecyclingcorps-gets-105-million-to-provide-carriers-refurbished-androids-iphones/");
+					  driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
+					  String Count3 = driver.findElement(By.xpath("//*[@id='gigya_share_counter_twitter']")).getText();
+					  System.out.println("Initial Tweet Count is :" +Count3);
+					  String master1 = driver.getWindowHandle();
+					  String link = "http://www.forbes.com/sites/michaelkanellos/2013/10/28/erecyclingcorps-gets-105-million-to-provide-carriers-refurbished-androids-iphones/";
+					  driver.get("https://twitter.com/intent/tweet?original_referer=" + link + "&tw_p=tweetbutton&url=http%3A%2F%2Fonforb.es%2F17xAze6&via=forbes");
+					  driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+					  int timeCount2 = 1;
+
+					  do
+					  {
+					     driver.getWindowHandles();
+					     Thread.sleep(200);
+					     timeCount2++;
+					     if ( timeCount2 > 50 )
+					     {
+					         break;
+					     }
+					  }
+					  while ( driver.getWindowHandles().size() == 1 );
+
+					  //Assigning the handles to a set
+					  Set<String> handles1 = driver.getWindowHandles();
+					  //Switching to the popup window.
+					  for ( String handless : handles1 )
+					  {
+					      if(!handless.equals(master1))
+					      {
+					           driver.switchTo().window(handless);
+					      }
+					  }
+					  driver.findElement(By.id("username_or_email")).clear();
+					  driver.findElement(By.id("username_or_email")).sendKeys("just4test12345@gmail.com");
+					  driver.findElement(By.id("password")).clear();
+					  driver.findElement(By.id("password")).sendKeys("qatest123");
+					  driver.findElement(By.xpath("//input[@value='Sign in and Tweet']")).click();
+					  driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+					  driver.switchTo().window(master1);
+					  try {
+						Thread.sleep(108000);
+						} catch(InterruptedException e) {
+						}
+					  driver.get("http://www.forbes.com/sites/michaelkanellos/2013/10/28/erecyclingcorps-gets-105-million-to-provide-carriers-refurbished-androids-iphones/");
+					  String Count4= driver.findElement(By.xpath("//*[@id='gigya_share_counter_twitter']")).getText();
+					  System.out.println("Shared Tweet Count is :" +Count4);
+					  if (Integer.parseInt(Count3) == Integer.parseInt(Count4)){
+						  System.out.println("The Gigya Toolbaar for Twitter is not showing an increase in the shared value");
+					  }
+					  else {
+						  System.out.println("The Gigya Toolbar for Twitter is showing the change after sharing the post");
+					  }
+					  testSummary();
+
+				}
+
+				public void Gigya_LinkedIn() throws InterruptedException{
+
+					  driver.get("http://www.forbes.com");
+					  driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+					  driver.get("http://www.forbes.com/sites/halahtouryalai/2013/11/11/the-worlds-29-too-big-to-fail-banks-jpmorgan-at-the-top/");
+					  String Count5 = driver.findElement(By.xpath("//*[@id='gigya_share_counter_linkedin']")).getText();
+					  System.out.println("Initial Count is :" +Count5);
+					  String master2 = driver.getWindowHandle();
+					  driver.findElement(By.xpath("//*[@id='gigya_share_button_linkedin-reaction0-icon_img']")).click();
+					  int timeCount3 = 1;
+
+					  do
+					  {
+					     driver.getWindowHandles();
+					     Thread.sleep(200);
+					     timeCount3++;
+					     if ( timeCount3 > 50 )
+					     {
+					         break;
+					     }
+					  }
+					  while ( driver.getWindowHandles().size() == 1 );
+
+					  //Assigning the handles to a set
+					  Set<String> handles2 = driver.getWindowHandles();
+					  //Switching to the popup window.
+					  for ( String handle : handles2 )
+					  {
+					      if(!handle.equals(master2))
+					      {
+					           driver.switchTo().window(handle);
+					      }
+					  }
+					  driver.findElement(By.linkText("Sign in")).click();
+					  driver.findElement(By.id("session_key-login")).clear();
+					  driver.findElement(By.id("session_key-login")).sendKeys("qaforbestest@gmail.com");
+					  driver.findElement(By.id("session_password-login")).clear();
+					  driver.findElement(By.id("session_password-login")).sendKeys("forbes123");
+					  driver.findElement(By.xpath("//input[@id='btn-primary']")).click();
+					  //Thread.sleep(108000);
+
+					  driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+					  //driver.switchTo().window("master2");
+					  driver.get("http://www.forbes.com/sites/halahtouryalai/2013/11/11/the-worlds-29-too-big-to-fail-banks-jpmorgan-at-the-top/");
+					  driver.manage().timeouts().implicitlyWait(5, TimeUnit.MINUTES);
+					  String Count6= driver.findElement(By.xpath("//*[@id='gigya_share_counter_linkedin']")).getText();
+					  System.out.println("Final Count is :" +Count6);
+					  if (Integer.parseInt(Count5) == Integer.parseInt(Count6)){
+						  System.out.println("The Gigya Toolbaar for LinkedIn is not showing an increase in the shared value");
+					  }
+					  else {
+						  System.out.println("The Gigya Toolbar for LinkedIn is showing the change after sharing the post");
+					  }
+
+
+
+
+
+
+
+				}
+}
+
+

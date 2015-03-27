@@ -1,0 +1,94 @@
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.firefox.FirefoxDriver;
+
+
+public class BrokenImages {
+
+	public static void main(String[] args) throws ClientProtocolException, IOException {
+
+		WebDriver driver = new FirefoxDriver();
+		driver.get("http://www.forbes.com/");
+		driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
+//		driver.get("http://www.forbes.com/");
+//		driver.navigate().to("http://www.forbes.com/sites/johnwasik/2014/02/05/figuring-your-retirement-income-in-four-steps/");
+		driver.navigate().to("http://www-staging-2.forbes.com/profile/michael-price/");
+
+		List<WebElement> imagesList = driver.findElements(By.tagName("img"));
+		for (WebElement image : imagesList)
+		{
+			String Link = image.getAttribute("src");
+		    HttpResponse response = new DefaultHttpClient().execute(new HttpGet(image.getAttribute("src")));
+		    if (response.getStatusLine().getStatusCode() != 200){
+		    	 System.out.println(Link+" - Link has a broken image");
+              }
+/*             else{
+            	 System.out.println(Link+" - is fine!");
+
+		    }*/
+
+		}
+
+		driver.quit();
+//		driver.close();
+	}
+
+/*
+		 static int invalidimg;
+		 static WebDriver driver ;
+		 public static void main(String[] args) {
+		  try {
+		    driver = new FirefoxDriver();
+		    driver.get("http://www.forbes.com/");
+			driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
+//			driver.navigate().to("http://www.forbes.com/australia-billionaires/list/"); // Replace here with the link you wanna test for 404 errors
+			driver.navigate().to("http://www.forbes.com/sites/michaelnoer/2013/06/26/glenn-beck-love-him-or-hate-him-hes-only-getting-more-powerful/");
+			driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+		   invalidimg = 0;
+		   List<WebElement> allImages  = driver.findElements(By.tagName("img"));
+		   System.out.println("Total  images are " + allImages.size());
+		   for (int i = 0; i < allImages.size(); i++) {
+		    WebElement img = (WebElement) allImages.get(i);
+		    if (img != null) {
+		     verifyimgActive(img);
+		    }
+		   }
+
+		   System.out.println("Total invalid images are " + invalidimg);
+		   driver.quit();
+		  } catch (Exception e) {
+		   e.printStackTrace();
+		   System.out.println(e.getMessage());
+		  }
+		 }
+
+
+
+		 public static void verifyimgActive(WebElement img) {
+		  try {
+		   HttpResponse response = new DefaultHttpClient().execute(new HttpGet(img.getAttribute("src")));
+		      if (response.getStatusLine().getStatusCode() != 200)
+		    invalidimg++;
+		   }
+		   catch (Exception e) {
+		   e.printStackTrace();
+		  }
+		 }
+*/
+
+	      }
+
+
+

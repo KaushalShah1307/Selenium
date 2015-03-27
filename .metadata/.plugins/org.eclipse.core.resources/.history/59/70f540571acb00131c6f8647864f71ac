@@ -1,0 +1,280 @@
+package com.forbes.test.selenium.seleniumDaily;
+
+import java.io.IOException;
+
+import javax.mail.MessagingException;
+
+import org.apache.http.client.ClientProtocolException;
+import org.openqa.selenium.remote.UnreachableBrowserException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import com.thoughtworks.selenium.SeleniumException;
+
+public class SeleniumDaily {
+	private static final Logger logger = LoggerFactory.getLogger(SeleniumDaily.class);
+
+	public static void main(String[] args) {
+		ApplicationContext context = new ClassPathXmlApplicationContext("application-context.xml");
+		SeleniumDaily test = context.getBean(SeleniumDaily.class);
+		test.runTestUntilSuccess();
+	}
+
+	String errorMessage = "";
+	public boolean testErrored() {
+		boolean success = false;
+		PerformTest test = new PerformTest();
+		try {
+			tests();
+			success = true;
+		} catch(UnreachableBrowserException ex) {
+			logger.error(ex.getMessage(), ex);
+			test.quitBrowser();
+			errorMessage= errorMessage + ex.getMessage();
+		} catch(SeleniumException timedOut) {
+			logger.error(timedOut.getMessage(), timedOut);
+			test.quitBrowser();
+			errorMessage= errorMessage + timedOut.getMessage();
+		}
+		return success;
+	}
+
+	public void runTestUntilSuccess() {
+		int numberOfTries = 4;
+		PerformTest test = new PerformTest();
+		while(!testErrored() && numberOfTries > 0) {
+			logger.debug("Trying Test for the "+(5-numberOfTries--) +"th time.");
+		}
+		if (numberOfTries == 0) {
+			test.sendEmail("jjean@forbes.com","bpoon@forbes.com","kshah@forbes.com", "Test did not Complete", errorMessage, "jjean@forbes.com");
+		}
+	}
+
+	public void tests() {
+//		hourlyTest();
+//		executeTest();
+//		dailyTest();
+//		for (int i =0; i<20;i++){
+//			hourlyTest();
+//		}
+//		MorningReport();
+		executeTest();
+//		falconTest();
+//		dailyTest();
+	}
+
+	public void executeTest() {
+//		logger.debug("In executeTest");
+		PerformTest test = new PerformTest();
+
+//		test.outputLog();
+
+//		test.initDriver();
+
+//		test.testEmail("jjean@forbes.com","jjean@forbes.com","Test did not Complete", "<a href = 'http://www.forbes.com'>Forbes </a>");
+
+/*		try {
+			test.BrokenImages();
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}*/
+
+//		test.HPLogin();
+
+//		test.MobileWelcomeAd();
+
+//		test.welcomeAd();
+
+//		test.HPTest("http://www.forbes.com");
+
+		test.initDriverChrome();
+
+//		test.initDriverChromeLog();
+
+//		test.initDriverIE();
+
+//		test.welcomeAd();
+
+//		test.getMostRecentArticle();
+
+//		test.get("http://www.forbes.com");
+
+//		test.mostRecentLoop();
+//		test.get("http://www.forbes.com/");
+//		test.get("http://www.forbes.com/");
+//
+//		test.get("http://www.forbes.com/sites/stevenhayward/2014/01/08/how-did-the-democrats-become-the-party-of-the-rich/");
+
+//		for (int i = 0;i<10;i++) {
+//			test.link404("http://www.forbes.com/private");
+//		}
+
+//		test.promotionsTest();
+
+//		test.falconTest();
+
+//		test.mobileTestLegacy();
+
+//		test.TestLegacy();
+
+//		test.randomTest();
+
+//		test.realtimeArticle();
+
+//		test.getArticles();
+
+
+//		for ( String article : test.getArticles()) {
+//			test.get(article);
+//			for (String article2 : test.getArticles()) {
+//				test.get(article2);
+//			}
+//		}
+
+//		test.listTest("http://www-staging.forbes.com/forbes-400/?view=noint");
+//		test.listTest("http://www-staging.forbes.com/mlb-valuations/");
+
+//		test.Manhattanlist("http://www-staging-2.forbes.com/korea-billionaires/");
+		test.nextProfile("http://www-staging-2.forbes.com/profile/chung-yong-jin/");
+
+
+//		test.brokenlinks();
+/*		try {
+			test.Gigya_Twitter();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		try {
+			test.Gigya_FB();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+*/
+//		test.listofLanders();
+
+//		test.listRunThrough("www.forbes.com/athletes/list");
+
+//		test.nextPageTest("http://www-staging-2.forbes.com/teams/new-york-yankees/");
+
+//
+//		try {
+//			test.getAudio();
+//		} catch (UnsupportedAudioFileException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+
+//		test.refreshing("http://www.forbes.com");
+
+//		test.channelStreamLoadMobile();
+
+//		test.channelStreamLoad();
+
+//		test.infiniScrolling("http://www-staging-2.forbes.com/sites/deborahljacobs/2013/06/10/the-20-most-popular-cities-in-the-world-to-visit-in-2013/");
+
+//		test.testingTesting();
+
+//		test.realTimeAll();
+
+//		test.testPageArticles("www-staging.forbes.com/real-time");
+
+//		test.mostPopularPage();
+
+		test.testSummaries();
+
+//		test.outputResults();
+//
+//		test.runOutputUntilSuccess();
+
+		test.quitBrowser();
+	}
+
+	public void hourlyTest() {
+		PerformTest test = new PerformTest();
+		test.outputLog();
+		test.initDriverChrome();
+		test.welcomeAd();
+//		test.realTimeAll();
+//		test.homePageAll();
+		test.testSummaries();
+		test.runOutputUntilSuccess();
+		test.quitBrowser();
+	}
+
+	public void dailyTest() {
+		PerformTest test = new PerformTest();
+        test.initDriver();
+// 		test.initDriverChrome();
+//      test.welcomeAd();
+        test.listTest("http://www.forbes.com/celebrities/");
+        test.channelStreamLoadMobile();
+        test.runOutputUntilSuccess();
+        test.quitBrowser();
+	}
+
+	public void MorningReport(){
+		PerformTest test = new PerformTest();
+		test.outputLog();
+		test.initDriverChrome();
+		test.welcomeAd();
+		test.HPTest("http://www.forbes.com/");
+//		test.HPLogin();
+		test.HPCheck();
+		test.HPEU();
+		test.HPASIA();
+		test.HPSearchbar();
+		test.MarketSearch();
+//		test.HPAvatars();
+		test.GalleryPage();
+//		test.mostPopularPage();
+		//**** Mobile Test ****//
+//		test.MobileWelcomeAd();
+/*		try {
+			test.Gigya_FB();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+/*		try {
+			test.Gigya_Twitter();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		try {
+			test.Gigya_LinkedIn();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+*/
+
+
+
+		test.runOutputUntilSuccess();
+		test.quitBrowser();
+
+
+	}
+
+	public void falconTest() {
+		PerformTest test = new PerformTest();
+		test.initDriverChrome();
+		test.get("http://www.demo.solostack.com");
+		test.falconLogin("jjean","forbes123");
+		test.testPost("This is the title");
+//		test.falconTest();
+//		test.falconApiPageTest();
+		test.runOutputUntilSuccess();
+		test.testSummaries();
+//		test.quitBrowser();
+	}
+
+}

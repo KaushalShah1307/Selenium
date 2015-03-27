@@ -1,0 +1,79 @@
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.openqa.selenium.safari.SafariDriver;
+
+// This one clicks on every link on the page and checks for HTTP response for 404 error!! Returns 404 found error if found!!
+public class brokenlinks {
+	public static void main(String[] args) {
+
+//		WebDriver driver = new FirefoxDriver();
+//		WebDriver driver = new SafariDriver();
+//		System.setProperty("webdriver.ie.driver", "C:\\Program Files\\Internet Explorer\\IEDriverServer.exe");
+//		WebDriver driver = new InternetExplorerDriver();
+		System.setProperty("webdriver.chrome.driver", System.getProperty("user.home")+"\\AppData\\Local\\Google\\Chrome\\Application\\chromedriver.exe");
+
+		ChromeOptions options = new ChromeOptions();
+		options.addArguments("--disable-web-security");
+
+		WebDriver driver = new ChromeDriver(options);
+		driver.get("http://www.forbes.com/");
+		driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
+		driver.navigate().to("http://www.forbes.com/lists/"); // Replace here with the link you wanna test for 404 errors
+		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+//	    JavascriptExecutor jse = (JavascriptExecutor)driver;
+//	    jse.executeScript("window.scrollTo(0,Math.max(document.documentElement.scrollHeight,document.body.scrollHeight,document.documentElement.clientHeight));");
+		  List<WebElement> linksList = driver.findElements(By.tagName("a"));
+	      for(WebElement linkElement: linksList){
+	          String link =linkElement.getAttribute("href");
+	          if(link!=null){
+	              if(!isLink(link)){
+	                  continue;
+	              }
+	              verifyLinkActive(link);
+	          }
+	      }
+	 }
+
+	      public static boolean isLink(String link){
+	    	  //Change the Link container based on what URL you are looking for//
+	          return link.contains("http://") && !link.contains("mailto") && !link.contains("[URI]");
+	      }
+
+	       public static void verifyLinkActive(String linkUrl){
+	          try {
+	             URL url = new URL(linkUrl);
+	             HttpURLConnection httpURLConnect=(HttpURLConnection)url.openConnection();
+	             httpURLConnect.setConnectTimeout(3000);
+	             httpURLConnect.connect();
+	             if(httpURLConnect.getResponseCode()==HttpURLConnection.HTTP_NOT_FOUND){
+	                 System.out.println(linkUrl+" - "+httpURLConnect.getResponseMessage()
+	                         + " - "+ HttpURLConnection.HTTP_NOT_FOUND);
+	              }
+	             else{
+	            	 System.out.println(linkUrl+" - Link is redirecting to the correct URL");
+	             }
+	          } catch (MalformedURLException e) {
+	              e.printStackTrace();
+	          } catch (IOException e) {
+	              e.printStackTrace();
+	          }
+
+	      }
+}
